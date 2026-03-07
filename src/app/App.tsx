@@ -7,6 +7,7 @@ import { CookieTypeSelector } from './components/CookieTypeSelector';
 import { IngredientSelector } from './components/IngredientSelector';
 import { MetricsDisplay } from './components/MetricsDisplay';
 import { NutritionFacts } from './components/NutritionFacts';
+import { BakingInstructions } from './components/BakingInstructions';
 import { ingredientsDatabase } from './data/ingredients';
 
 type MeasurementMode = 'metric' | 'imperial' | 'volumetric';
@@ -290,6 +291,18 @@ export default function App() {
               />
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Baking Instructions Section */}
+      {ingredients.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <BakingInstructions
+            cookieType={selectedCookieType.id}
+            totalWeight={metrics.totalWeight}
+            cookieCount={servingsPerRecipe}
+            measurementMode={measurementMode}
+          />
         </div>
       )}
 
