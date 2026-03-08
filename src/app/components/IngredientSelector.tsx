@@ -118,7 +118,7 @@ export function IngredientSelector({
     const density = ingredient?.density || 1.0;
     
     switch (unit) {
-      // Metric
+      // Metric (keep precise decimals - people have scales)
       case 'g':
         return grams.toFixed(1);
       case 'kg':
@@ -126,27 +126,66 @@ export function IngredientSelector({
       case 'mg':
         return (grams * 1000).toFixed(0);
       
-      // Imperial
+      // Imperial (keep precise decimals - people have scales)
       case 'oz':
         return (grams * 0.035274).toFixed(2);
       case 'lb':
         return (grams * 0.00220462).toFixed(3);
       
-      // Volumetric
+      // Volumetric (round to practical measurements)
       case 'cups':
-        return (grams / (density * 236.588)).toFixed(2);
+        return formatVolumetricDisplay(grams, density, 236.588, 'cup');
       case 'tbsp':
-        return (grams / (density * 14.7868)).toFixed(1);
+        return formatVolumetricDisplay(grams, density, 14.7868, 'tbsp');
       case 'tsp':
-        return (grams / (density * 4.92892)).toFixed(1);
+        return formatVolumetricDisplay(grams, density, 4.92892, 'tsp');
       case 'ml':
-        return (grams / density).toFixed(1);
+        return (grams / density).toFixed(0); // Round to whole ml
       case 'fl oz':
-        return (grams / (density * 29.5735)).toFixed(2);
+        return (grams / (density * 29.5735)).toFixed(1);
       
       default:
         return grams.toFixed(1);
     }
+  };
+
+  // Helper function to format volumetric measurements into practical portions
+  const formatVolumetricDisplay = (grams: number, density: number, gramPerUnit: number, unitName: string): string => {
+    const totalInUnit = grams / (density * gramPerUnit);
+    
+    // For very small amounts, show decimals
+    if (totalInUnit < 0.25) {
+      return totalInUnit.toFixed(2);
+    }
+    
+    // Round to common fractions: 0.25, 0.33, 0.5, 0.67, 0.75
+    const whole = Math.floor(totalInUnit);
+    const fraction = totalInUnit - whole;
+    
+    let displayFraction = '';
+    if (fraction >= 0.875) {
+      return (whole + 1).toFixed(0); // Round up
+    } else if (fraction >= 0.708) {
+      displayFraction = '¾';
+    } else if (fraction >= 0.58) {
+      displayFraction = '⅔';
+    } else if (fraction >= 0.416) {
+      displayFraction = '½';
+    } else if (fraction >= 0.291) {
+      displayFraction = '⅓';
+    } else if (fraction >= 0.166) {
+      displayFraction = '¼';
+    }
+    
+    if (whole === 0 && displayFraction) {
+      return displayFraction;
+    } else if (displayFraction) {
+      return `${whole} ${displayFraction}`;
+    } else if (whole > 0) {
+      return whole.toFixed(0);
+    }
+    
+    return totalInUnit.toFixed(2);
   };
 
   const convertFromDisplay = (value: number, unit: UnitType, ingredient: any): number => {
