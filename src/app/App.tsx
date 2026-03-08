@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Cookie, Scale, Beaker, ArrowLeft } from 'lucide-react';
+import { Cookie, Scale, Beaker, ArrowLeft, ChefHat } from 'lucide-react';
 import { RecipeIngredient, UnitType } from './types/cookie';
 import { cookieTypes, CookieType } from './types/cookieTypes';
 import { calculateCookieMetrics } from './utils/cookieCalculations';
@@ -9,6 +9,7 @@ import { MetricsDisplay } from './components/MetricsDisplay';
 import { NutritionFacts } from './components/NutritionFacts';
 import { BakingInstructions } from './components/BakingInstructions';
 import { ingredientsDatabase } from './data/ingredients';
+import { recipePresets, getRecipesForCookieType } from './data/recipePresets';
 
 type MeasurementMode = 'metric' | 'imperial' | 'volumetric';
 
@@ -61,6 +62,30 @@ export default function App() {
     })));
   };
 
+  const handleLoadRecipe = (recipeId: string) => {
+    if (recipeId === '') return; // No recipe selected
+    
+    const recipe = recipePresets.find(r => r.id === recipeId);
+    if (!recipe) return;
+
+    // Load recipe ingredients with proper IDs and display units
+    const defaultUnit = UNIT_OPTIONS[measurementMode][0];
+    const ingredientsWithIds = recipe.ingredients.map((ing, index) => {
+      const ingredientData = ingredientsDatabase.find(i => i.id === ing.ingredientId);
+      const isEgg = ingredientData?.category === 'egg';
+      
+      return {
+        ...ing,
+        id: `${Date.now()}-${index}`,
+        displayUnit: defaultUnit,
+        eggSize: ing.eggSize || (isEgg ? ('medium' as const) : undefined),
+      };
+    });
+    
+    setIngredients(ingredientsWithIds);
+    setShowNutrition(false);
+  };
+
   // Show cookie type selector if no type is selected
   if (!selectedCookieType) {
     return (
@@ -73,6 +98,9 @@ export default function App() {
 
   const metrics = calculateCookieMetrics(ingredients);
   const servingsPerRecipe = metrics.totalWeight > 0 ? Math.floor(metrics.totalWeight / servingSize) : 0;
+
+  // Get recipes for current cookie type
+  const availableRecipes = getRecipesForCookieType(selectedCookieType.id);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
@@ -186,6 +214,34 @@ export default function App() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Ingredients */}
           <div className="lg:col-span-2 space-y-6">
+            {/* Recipe Selector */}
+            {availableRecipes.length > 0 && (
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl shadow-md border border-green-200">
+                <div className="flex items-center gap-3">
+                  <ChefHat className="w-5 h-5 text-green-600" />
+                  <label htmlFor="recipe-select" className="font-semibold text-gray-900">
+                    Load a Recipe:
+                  </label>
+                  <select
+                    id="recipe-select"
+                    onChange={(e) => handleLoadRecipe(e.target.value)}
+                    className="flex-1 px-4 py-2 border border-green-300 rounded-lg bg-white font-medium text-gray-900 hover:border-green-400 focus:border-green-500 focus:ring-2 focus:ring-green-200"
+                    defaultValue=""
+                  >
+                    <option value="">-- Select a Recipe to Load --</option>
+                    {availableRecipes.map((recipe) => (
+                      <option key={recipe.id} value={recipe.id}>
+                        {recipe.name} ({recipe.servings})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="text-xs text-green-700 mt-2 ml-8">
+                  Choose a tested recipe to populate ingredients automatically
+                </p>
+              </div>
+            )}
+            
             <div className="bg-gradient-to-br from-white to-amber-50 p-6 rounded-xl shadow-lg border border-amber-200">
               <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                 <Cookie className="w-5 h-5 text-amber-600" />
