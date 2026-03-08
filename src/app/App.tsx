@@ -12,6 +12,7 @@ import { ingredientsDatabase } from './data/ingredients';
 import { recipePresets, getRecipesForCookieType } from './data/recipePresets';
 
 type MeasurementMode = 'metric' | 'imperial' | 'volumetric';
+type ActiveTab = 'science' | 'nutrition' | 'baking';
 
 const UNIT_OPTIONS: Record<MeasurementMode, UnitType[]> = {
   metric: ['g', 'kg', 'mg'],
@@ -25,6 +26,7 @@ export default function App() {
   const [measurementMode, setMeasurementMode] = useState<MeasurementMode>('metric');
   const [servingSize, setServingSize] = useState(30);
   const [selectedRecipeName, setSelectedRecipeName] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<ActiveTab>('science');
 
   const handleSelectCookieType = (cookieType: CookieType) => {
     setSelectedCookieType(cookieType);
@@ -168,7 +170,7 @@ export default function App() {
       <main className="container mx-auto px-4 py-6">
         <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          {/* LEFT — Ingredients + Metrics */}
+          {/* LEFT — Ingredients */}
           <div className="space-y-6">
             <div className="bg-white rounded-2xl shadow-md p-5">
               <div className="flex items-center justify-between mb-4">
@@ -197,91 +199,130 @@ export default function App() {
                 measurementMode={measurementMode}
               />
             </div>
-
-            {ingredients.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-md p-5">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">🔬 Cookie Science Metrics</h2>
-                <MetricsDisplay metrics={metrics} measurementMode={measurementMode} />
-              </div>
-            )}
           </div>
 
-          {/* RIGHT — Stats + Info + Nutrition */}
-          <div className="space-y-6">
-            {ingredients.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-md p-5">
-                <h3 className="font-bold text-gray-900 mb-3">📊 Quick Stats</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Ingredients:</span>
-                    <span className="font-semibold text-gray-900">{ingredients.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Total Weight:</span>
-                    <span className="font-semibold text-gray-900">{Math.round(metrics.totalWeight)}g</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Servings:</span>
-                    <span className="font-semibold text-gray-900">{servingsPerRecipe} cookies</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Per Cookie:</span>
-                    <span className="font-semibold text-gray-900">
-                      {((metrics.calories * servingSize) / 100).toFixed(0)} cal
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="bg-white rounded-2xl shadow-md p-5">
-              <h3 className="font-bold text-gray-900 mb-3">💡 About Cookie Metrics</h3>
-              <div className="space-y-3 text-sm">
-                <div>
-                  <div className="font-semibold text-red-700">Water Activity (aw)</div>
-                  <p className="text-gray-600">Measures moisture availability. Range: 0.30 (crisp) to 0.75 (soft). Lower values = longer shelf life.</p>
-                </div>
-                <div>
-                  <div className="font-semibold text-red-700">Texture Force (N)</div>
-                  <p className="text-gray-600">Hardness in Newtons. Lower = soft/chewy, Higher = crisp/hard.</p>
-                </div>
-                <div>
-                  <div className="font-semibold text-red-700">Spread Ratio</div>
-                  <p className="text-gray-600">Diameter ÷ height. Higher = flatter, wider cookies. Typical: 5–8.</p>
-                </div>
-                <div>
-                  <div className="font-semibold text-red-700">Sugar Content</div>
-                  <p className="text-gray-600">Total sugar from all sources. Most cookies are 15–35% sugar.</p>
-                </div>
-              </div>
+          {/* RIGHT — Tabs */}
+          <div>
+            {/* Tab nav */}
+            <div className="flex bg-white rounded-2xl shadow-sm p-1 mb-4">
+              {([
+                { id: 'science',   label: '🔬 Science'   },
+                { id: 'nutrition', label: '📋 Nutrition'  },
+                { id: 'baking',    label: '🔥 Baking'     },
+              ] as { id: ActiveTab; label: string }[]).map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex-1 py-2 rounded-xl text-sm font-medium transition-all ${
+                    activeTab === tab.id ? 'text-white shadow' : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                  style={activeTab === tab.id ? { background: 'linear-gradient(135deg, #c0392b, #e67e22)' } : {}}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
-            {ingredients.length > 0 && (
+            {/* Tab content */}
+            {activeTab === 'science' && (
+              <div className="bg-white rounded-2xl shadow-md p-5 space-y-4">
+                {ingredients.length > 0 ? (
+                  <>
+                    {/* Quick Stats */}
+                    <div>
+                      <h3 className="font-bold text-gray-900 mb-3">📊 Quick Stats</h3>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Ingredients:</span>
+                          <span className="font-semibold text-gray-900">{ingredients.length}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Total Weight:</span>
+                          <span className="font-semibold text-gray-900">{Math.round(metrics.totalWeight)}g</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Servings:</span>
+                          <span className="font-semibold text-gray-900">{servingsPerRecipe} cookies</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Per Cookie:</span>
+                          <span className="font-semibold text-gray-900">
+                            {((metrics.calories * servingSize) / 100).toFixed(0)} cal
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-100 pt-4">
+                      <MetricsDisplay metrics={metrics} measurementMode={measurementMode} />
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-12 text-gray-400 text-sm">
+                    Add ingredients to see science metrics
+                  </div>
+                )}
+
+                {/* About metrics — always visible */}
+                <div className="border-t border-gray-100 pt-4">
+                  <h3 className="font-bold text-gray-900 mb-3">💡 About Cookie Metrics</h3>
+                  <div className="space-y-3 text-sm">
+                    <div>
+                      <div className="font-semibold text-red-700">Water Activity (aw)</div>
+                      <p className="text-gray-600">Measures moisture availability. Range: 0.30 (crisp) to 0.75 (soft). Lower = longer shelf life.</p>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-red-700">Texture Force (N)</div>
+                      <p className="text-gray-600">Hardness in Newtons. Lower = soft/chewy, Higher = crisp/hard.</p>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-red-700">Spread Ratio</div>
+                      <p className="text-gray-600">Diameter ÷ height. Higher = flatter, wider cookies. Typical: 5–8.</p>
+                    </div>
+                    <div>
+                      <div className="font-semibold text-red-700">Sugar Content</div>
+                      <p className="text-gray-600">Total sugar from all sources. Most cookies are 15–35% sugar.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'nutrition' && (
               <div className="bg-white rounded-2xl shadow-md p-5">
-                <h3 className="font-bold text-gray-900 mb-4">📋 FDA Nutrition Facts</h3>
-                <NutritionFacts
-                  metrics={metrics}
-                  servingSize={servingSize}
-                  servingsPerRecipe={servingsPerRecipe}
-                />
+                {ingredients.length > 0 ? (
+                  <NutritionFacts
+                    metrics={metrics}
+                    servingSize={servingSize}
+                    servingsPerRecipe={servingsPerRecipe}
+                  />
+                ) : (
+                  <div className="text-center py-12 text-gray-400 text-sm">
+                    Add ingredients to see nutrition facts
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === 'baking' && (
+              <div className="bg-white rounded-2xl shadow-md p-5">
+                {ingredients.length > 0 ? (
+                  <BakingInstructions
+                    cookieType={selectedCookieType.id}
+                    totalWeight={metrics.totalWeight}
+                    cookieCount={servingsPerRecipe}
+                    measurementMode={measurementMode}
+                  />
+                ) : (
+                  <div className="text-center py-12 text-gray-400 text-sm">
+                    Add ingredients to see baking instructions
+                  </div>
+                )}
               </div>
             )}
           </div>
+
         </div>
-
-        {/* Baking Instructions — full width */}
-        {ingredients.length > 0 && (
-          <div className="max-w-6xl mx-auto mt-6">
-            <div className="bg-white rounded-2xl shadow-md p-5">
-              <BakingInstructions
-                cookieType={selectedCookieType.id}
-                totalWeight={metrics.totalWeight}
-                cookieCount={servingsPerRecipe}
-                measurementMode={measurementMode}
-              />
-            </div>
-          </div>
-        )}
       </main>
 
       <footer className="container mx-auto px-4 py-8 mt-4">
