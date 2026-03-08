@@ -321,7 +321,7 @@ export function IngredientSelector({
                   {!isEgg && (
                     <>
                       <input
-                        type="number"
+                        type={measurementMode === 'volumetric' ? 'text' : 'number'}
                         value={convertToDisplay(recipeIng.amount, currentUnit, ingredient)}
                         onChange={(e) => {
                           const value = parseFloat(e.target.value) || 0;
@@ -333,6 +333,8 @@ export function IngredientSelector({
                         className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-right"
                         step="0.1"
                         min="0"
+                        readOnly={measurementMode === 'volumetric'}
+                        title={measurementMode === 'volumetric' ? 'Switch to Metric or Imperial to edit' : ''}
                       />
                       <select
                         value={currentUnit}
