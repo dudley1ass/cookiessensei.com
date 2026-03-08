@@ -1,5 +1,7 @@
-import { Cookie, ChefHat, Sparkles } from 'lucide-react';
+import { Cookie, ChefHat, Sparkles, Search } from 'lucide-react';
 import { CookieType } from '../types/cookieTypes';
+import { useState } from 'react';
+import { IngredientMatcher } from './IngredientMatcher';
 
 interface CookieTypeSelectorProps {
   cookieTypes: CookieType[];
@@ -7,6 +9,8 @@ interface CookieTypeSelectorProps {
 }
 
 export function CookieTypeSelector({ cookieTypes, onSelectType }: CookieTypeSelectorProps) {
+  const [showMatcher, setShowMatcher] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
       {/* Header */}
@@ -30,10 +34,19 @@ export function CookieTypeSelector({ cookieTypes, onSelectType }: CookieTypeSele
               <ChefHat className="w-6 h-6 text-amber-600" />
               <h2 className="text-2xl font-bold text-gray-800">12 Professional Cookie Formulas</h2>
             </div>
-            <p className="text-gray-600 max-w-2xl mx-auto">
+            <p className="text-gray-600 max-w-2xl mx-auto mb-6">
               Select a cookie type to load its professional bakery formula. Each formula is based on real science
               and can be customized to your preferences.
             </p>
+
+            {/* Ingredient Matcher Button */}
+            <button
+              onClick={() => setShowMatcher(true)}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+            >
+              <Search className="w-5 h-5" />
+              What Can I Make With My Ingredients?
+            </button>
           </div>
 
           {/* Cookie Type Grid */}
@@ -92,6 +105,16 @@ export function CookieTypeSelector({ cookieTypes, onSelectType }: CookieTypeSele
           </div>
         </div>
       </main>
+
+      {/* Ingredient Matcher Modal */}
+      {showMatcher && (
+        <IngredientMatcher
+          isOpen={showMatcher}
+          onClose={() => setShowMatcher(false)}
+          cookieTypes={cookieTypes}
+          onSelectCookieType={onSelectType}
+        />
+      )}
     </div>
   );
 }
