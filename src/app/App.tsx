@@ -42,6 +42,7 @@ export default function App() {
         eggSize: isEgg ? ('medium' as const) : undefined,
       };
     });
+    console.log('Loading base formula with', ingredientsWithIds.length, 'ingredients');
     setIngredients(ingredientsWithIds);
     setShowNutrition(false);
   };
@@ -65,9 +66,15 @@ export default function App() {
   const handleLoadRecipe = (recipeId: string) => {
     if (recipeId === '') return; // No recipe selected
     
+    console.log('Loading recipe:', recipeId);
     const recipe = recipePresets.find(r => r.id === recipeId);
-    if (!recipe) return;
+    if (!recipe) {
+      console.error('Recipe not found:', recipeId);
+      return;
+    }
 
+    console.log('Found recipe:', recipe.name, 'with', recipe.ingredients.length, 'ingredients');
+    
     // Load recipe ingredients with proper IDs and display units
     const defaultUnit = UNIT_OPTIONS[measurementMode][0];
     const ingredientsWithIds = recipe.ingredients.map((ing, index) => {
@@ -82,6 +89,7 @@ export default function App() {
       };
     });
     
+    console.log('Setting', ingredientsWithIds.length, 'ingredients');
     setIngredients(ingredientsWithIds);
     setShowNutrition(false);
   };
@@ -101,6 +109,7 @@ export default function App() {
 
   // Get recipes for current cookie type
   const availableRecipes = getRecipesForCookieType(selectedCookieType.id);
+  console.log('Available recipes for', selectedCookieType.id, ':', availableRecipes.length, 'recipes');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
