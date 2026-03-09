@@ -155,6 +155,17 @@ export default function App() {
   }, { calories: 0, fat: 0, sugar: 0, carbs: 0, protein: 0, weight: 0 });
 
   const totalWeight = metrics.totalWeight + toppingNutrition.weight;
+
+  // Merge toppings into metrics for nutrition display
+  const metricsWithToppings = {
+    ...metrics,
+    totalWeight,
+    calories: metrics.calories + (toppingNutrition.calories / (totalWeight || 1)) * 100,
+    fat: metrics.fat + (toppingNutrition.fat / (totalWeight || 1)) * 100,
+    sugar: metrics.sugar + (toppingNutrition.sugar / (totalWeight || 1)) * 100,
+    carbs: metrics.carbs + (toppingNutrition.carbs / (totalWeight || 1)) * 100,
+    protein: metrics.protein + (toppingNutrition.protein / (totalWeight || 1)) * 100,
+  };
   const totalServings = totalWeight > 0 ? Math.floor(totalWeight / servingSize) : 0;
 
   const filteredToppings = toppingCat === 'all' ? TOPPINGS : TOPPINGS.filter(t => t.category === toppingCat);
@@ -328,7 +339,7 @@ export default function App() {
                         <div className="flex justify-between"><span className="text-gray-600">Ingredients:</span><span className="font-semibold">{ingredients.length}</span></div>
                         <div className="flex justify-between"><span className="text-gray-600">Total Weight:</span><span className="font-semibold">{Math.round(totalWeight)}g</span></div>
                         <div className="flex justify-between"><span className="text-gray-600">Servings:</span><span className="font-semibold">{totalServings} cookies</span></div>
-                        <div className="flex justify-between"><span className="text-gray-600">Per Cookie:</span><span className="font-semibold">{((metrics.calories * servingSize) / 100).toFixed(0)} cal</span></div>
+                        <div className="flex justify-between"><span className="text-gray-600">Per Cookie:</span><span className="font-semibold">{((metricsWithToppings.calories * servingSize) / 100).toFixed(0)} cal</span></div>
                         {toppings.length > 0 && <div className="flex justify-between"><span className="text-gray-600">Toppings Added:</span><span className="font-semibold">{toppings.length}</span></div>}
                       </div>
                     </div>
@@ -354,7 +365,7 @@ export default function App() {
             {activeTab === 'nutrition' && (
               <div className="bg-white rounded-2xl shadow-md p-5">
                 {ingredients.length > 0 ? (
-                  <NutritionFacts metrics={metrics} servingSize={servingSize} servingsPerRecipe={servingsPerRecipe} />
+                  <NutritionFacts metrics={metricsWithToppings} servingSize={servingSize} servingsPerRecipe={Math.floor(totalWeight / servingSize)} />
                 ) : (
                   <div className="text-center py-12 text-gray-400 text-sm">Add ingredients to see nutrition facts</div>
                 )}
