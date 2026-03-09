@@ -86,6 +86,10 @@ export function NutritionFacts({
           amount={`${transFat.toFixed(1)}g`}
         />
         <NutritionSubRow
+          label="Unsaturated Fat"
+          amount={`${Math.max(0, fat - saturatedFat - transFat).toFixed(1)}g`}
+        />
+        <NutritionSubRow
           label="Cholesterol"
           amount={`${cholesterol.toFixed(0)}mg`}
           dv={cholesterolDV}
