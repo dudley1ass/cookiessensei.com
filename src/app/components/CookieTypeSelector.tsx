@@ -57,7 +57,7 @@ export function CookieTypeSelector({ cookieTypes, onSelectType }: CookieTypeSele
                 className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 text-left border-2 border-transparent hover:border-red-400 hover:scale-105 group"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className="text-4xl">🍪</div>
+                  <div className="text-4xl">{type.emoji}</div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold px-2 py-1 rounded-full bg-red-50 text-red-600">
                       {type.texture}
@@ -72,10 +72,6 @@ export function CookieTypeSelector({ cookieTypes, onSelectType }: CookieTypeSele
                 <div className="mb-3">
                   <div className="text-xs font-semibold text-red-600 mb-1">Examples:</div>
                   <div className="text-xs text-gray-500 line-clamp-1">{type.examples.join(', ')}</div>
-                </div>
-
-                <div className="border-t border-gray-100 pt-3">
-                  <div className="text-xs text-gray-500 line-clamp-2 italic">🔬 {type.scienceNote}</div>
                 </div>
 
                 <div className="mt-3 flex items-center gap-2 text-xs text-red-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity">

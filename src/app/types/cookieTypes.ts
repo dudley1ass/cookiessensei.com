@@ -3,6 +3,7 @@ import { RecipeIngredient } from './cookie';
 export interface CookieType {
   id: string;
   name: string;
+  emoji: string;
   description: string;
   examples: string[];
   texture: string;
@@ -15,38 +16,40 @@ export const cookieTypes: CookieType[] = [
   {
     id: 'drop-cookie',
     name: 'Classic Drop Cookie',
+    emoji: '🍪',
     description: 'The most common cookie formula with chewy center and crisp edges.',
     examples: ['Chocolate Chip', 'Oatmeal Raisin', 'M&M Cookies', 'Monster Cookies'],
     texture: 'Chewy center, crisp edges',
     ratioDescription: '1 butter : 1 sugar : 1 egg : 2 flour',
     keyTraits: ['Most versatile formula', 'Perfect for mix-ins', 'Classic texture'],
     baseFormula: [
-      { id: '1', ingredientId: 'butter-unsalted', amount: 227 }, // 1 cup
-      { id: '2', ingredientId: 'sugar-brown', amount: 150 }, // 3/4 cup
-      { id: '3', ingredientId: 'sugar-white', amount: 100 }, // 1/2 cup
-      { id: '4', ingredientId: 'egg-whole', amount: 50, eggSize: 'medium', eggQuantity: 1 }, // 1 egg
+      { id: '1', ingredientId: 'butter-unsalted', amount: 227 },
+      { id: '2', ingredientId: 'sugar-brown', amount: 150 },
+      { id: '3', ingredientId: 'sugar-white', amount: 100 },
+      { id: '4', ingredientId: 'egg-whole', amount: 50, eggSize: 'medium', eggQuantity: 1 },
       { id: '5', ingredientId: 'vanilla-extract', amount: 5 },
-      { id: '6', ingredientId: 'flour-ap', amount: 280 }, // 2 cups
+      { id: '6', ingredientId: 'flour-ap', amount: 280 },
       { id: '7', ingredientId: 'baking-soda', amount: 5 },
       { id: '8', ingredientId: 'salt', amount: 5 },
-      { id: '9', ingredientId: 'chocolate-chips-semisweet', amount: 340 }, // 2 cups
+      { id: '9', ingredientId: 'chocolate-chips-semisweet', amount: 340 },
     ],
   },
   {
     id: 'soft-cake',
     name: 'Soft Cake Cookie',
+    emoji: '🧁',
     description: 'Higher moisture and leavening creates a soft, fluffy cookie.',
     examples: ['Pumpkin Cookies', 'Whoopie Pie', 'Lofthouse Sugar Cookies'],
     texture: 'Soft, fluffy, cake-like',
     ratioDescription: 'More eggs, baking powder, often sour cream or milk',
     keyTraits: ['Extra moisture', 'Double leavening', 'Pillow-soft texture'],
     baseFormula: [
-      { id: '1', ingredientId: 'butter-unsalted', amount: 113 }, // 1/2 cup
-      { id: '2', ingredientId: 'sugar-white', amount: 200 }, // 1 cup
-      { id: '3', ingredientId: 'egg-whole', amount: 100, eggSize: 'medium', eggQuantity: 2 }, // 2 eggs
+      { id: '1', ingredientId: 'butter-unsalted', amount: 113 },
+      { id: '2', ingredientId: 'sugar-white', amount: 200 },
+      { id: '3', ingredientId: 'egg-whole', amount: 100, eggSize: 'medium', eggQuantity: 2 },
       { id: '4', ingredientId: 'vanilla-extract', amount: 5 },
-      { id: '5', ingredientId: 'milk-whole', amount: 60 }, // 1/4 cup
-      { id: '6', ingredientId: 'flour-ap', amount: 280 }, // 2 cups
+      { id: '5', ingredientId: 'milk-whole', amount: 60 },
+      { id: '6', ingredientId: 'flour-ap', amount: 280 },
       { id: '7', ingredientId: 'baking-powder', amount: 10 },
       { id: '8', ingredientId: 'baking-soda', amount: 3 },
       { id: '9', ingredientId: 'salt', amount: 3 },
@@ -55,33 +58,35 @@ export const cookieTypes: CookieType[] = [
   {
     id: 'shortbread',
     name: 'Shortbread',
+    emoji: '🟨',
     description: 'Simple, buttery dough with a crumbly, melt-in-mouth texture.',
     examples: ['Scottish Shortbread', 'Danish Butter Cookies', 'Wedding Cookies'],
     texture: 'Crumbly, melt-in-mouth',
     ratioDescription: '1 sugar : 2 butter : 3 flour',
     keyTraits: ['Minimal ingredients', 'High butter content', 'No eggs'],
     baseFormula: [
-      { id: '1', ingredientId: 'butter-unsalted', amount: 227 }, // 1 cup / 2 sticks
-      { id: '2', ingredientId: 'sugar-powdered', amount: 65 }, // 1/2 cup
+      { id: '1', ingredientId: 'butter-unsalted', amount: 227 },
+      { id: '2', ingredientId: 'sugar-powdered', amount: 65 },
       { id: '3', ingredientId: 'vanilla-extract', amount: 5 },
-      { id: '4', ingredientId: 'flour-ap', amount: 280 }, // 2 cups
+      { id: '4', ingredientId: 'flour-ap', amount: 280 },
       { id: '5', ingredientId: 'salt', amount: 2 },
     ],
   },
   {
     id: 'sugar-cookie',
     name: 'Sugar Cookie',
+    emoji: '⭐',
     description: 'Balanced dough designed for rolling, cutting, and decorating.',
     examples: ['Christmas Cookies', 'Frosted Sugar Cookies', 'Cut-Out Cookies'],
     texture: 'Crisp or soft depending on bake',
     ratioDescription: 'Butter + sugar + eggs + baking powder',
     keyTraits: ['Holds shape well', 'Perfect for decorating', 'Versatile texture'],
     baseFormula: [
-      { id: '1', ingredientId: 'butter-unsalted', amount: 170 }, // 3/4 cup
-      { id: '2', ingredientId: 'sugar-white', amount: 200 }, // 1 cup
-      { id: '3', ingredientId: 'egg-whole', amount: 50, eggSize: 'medium', eggQuantity: 1 }, // 1 egg
+      { id: '1', ingredientId: 'butter-unsalted', amount: 170 },
+      { id: '2', ingredientId: 'sugar-white', amount: 200 },
+      { id: '3', ingredientId: 'egg-whole', amount: 50, eggSize: 'medium', eggQuantity: 1 },
       { id: '4', ingredientId: 'vanilla-extract', amount: 5 },
-      { id: '5', ingredientId: 'flour-ap', amount: 315 }, // 2.5 cups
+      { id: '5', ingredientId: 'flour-ap', amount: 315 },
       { id: '6', ingredientId: 'baking-powder', amount: 8 },
       { id: '7', ingredientId: 'salt', amount: 3 },
     ],
@@ -89,17 +94,18 @@ export const cookieTypes: CookieType[] = [
   {
     id: 'snickerdoodle',
     name: 'Snickerdoodle',
+    emoji: '🌀',
     description: 'Tangy sugar cookie variation with cream of tartar and cinnamon.',
     examples: ['Classic Snickerdoodles', 'Cinnamon Sugar Cookies'],
     texture: 'Puffy interior, tangy flavor',
     ratioDescription: 'Sugar cookie base + cream of tartar',
     keyTraits: ['Cream of tartar tang', 'Cinnamon-sugar coating', 'Soft and puffy'],
     baseFormula: [
-      { id: '1', ingredientId: 'butter-unsalted', amount: 170 }, // 3/4 cup
-      { id: '2', ingredientId: 'sugar-white', amount: 300 }, // 1.5 cups (including coating)
-      { id: '3', ingredientId: 'egg-whole', amount: 50, eggSize: 'medium', eggQuantity: 1 }, // 1 egg
+      { id: '1', ingredientId: 'butter-unsalted', amount: 170 },
+      { id: '2', ingredientId: 'sugar-white', amount: 300 },
+      { id: '3', ingredientId: 'egg-whole', amount: 50, eggSize: 'medium', eggQuantity: 1 },
       { id: '4', ingredientId: 'vanilla-extract', amount: 5 },
-      { id: '5', ingredientId: 'flour-ap', amount: 280 }, // 2 cups
+      { id: '5', ingredientId: 'flour-ap', amount: 280 },
       { id: '6', ingredientId: 'baking-soda', amount: 5 },
       { id: '7', ingredientId: 'salt', amount: 3 },
     ],
@@ -107,74 +113,78 @@ export const cookieTypes: CookieType[] = [
   {
     id: 'brownie-cookie',
     name: 'Brownie Cookie',
+    emoji: '🍫',
     description: 'Chocolate-heavy batter with fudgy texture and crackled tops.',
     examples: ['Crinkle Cookies', 'Flourless Chocolate Cookies', 'Double Chocolate'],
     texture: 'Fudgy, rich, intense chocolate',
     ratioDescription: 'High cocoa/chocolate, lower flour',
     keyTraits: ['Very chocolatey', 'Fudgy center', 'Crackled surface'],
     baseFormula: [
-      { id: '1', ingredientId: 'butter-unsalted', amount: 113 }, // 1/2 cup
-      { id: '2', ingredientId: 'sugar-white', amount: 200 }, // 1 cup
-      { id: '3', ingredientId: 'sugar-brown', amount: 100 }, // 1/2 cup
-      { id: '4', ingredientId: 'egg-whole', amount: 100, eggSize: 'medium', eggQuantity: 2 }, // 2 eggs
+      { id: '1', ingredientId: 'butter-unsalted', amount: 113 },
+      { id: '2', ingredientId: 'sugar-white', amount: 200 },
+      { id: '3', ingredientId: 'sugar-brown', amount: 100 },
+      { id: '4', ingredientId: 'egg-whole', amount: 100, eggSize: 'medium', eggQuantity: 2 },
       { id: '5', ingredientId: 'vanilla-extract', amount: 5 },
-      { id: '6', ingredientId: 'cocoa-powder', amount: 75 }, // 3/4 cup
-      { id: '7', ingredientId: 'flour-ap', amount: 125 }, // 1 cup (less flour)
+      { id: '6', ingredientId: 'cocoa-powder', amount: 75 },
+      { id: '7', ingredientId: 'flour-ap', amount: 125 },
       { id: '8', ingredientId: 'baking-powder', amount: 5 },
       { id: '9', ingredientId: 'salt', amount: 3 },
-      { id: '10', ingredientId: 'chocolate-chips-dark', amount: 170 }, // 1 cup
+      { id: '10', ingredientId: 'chocolate-chips-dark', amount: 170 },
     ],
   },
   {
     id: 'biscotti',
     name: 'Biscotti',
+    emoji: '☕',
     description: 'Twice-baked Italian cookie with dry, crunchy texture.',
     examples: ['Almond Biscotti', 'Chocolate Biscotti', 'Anise Biscotti'],
     texture: 'Hard, crunchy, dry',
     ratioDescription: 'Low fat, dry structure',
     keyTraits: ['Twice-baked', 'Very crunchy', 'Perfect for dipping'],
     baseFormula: [
-      { id: '1', ingredientId: 'butter-unsalted', amount: 56 }, // 1/4 cup (low fat)
-      { id: '2', ingredientId: 'sugar-white', amount: 200 }, // 1 cup
-      { id: '3', ingredientId: 'egg-whole', amount: 100, eggSize: 'medium', eggQuantity: 2 }, // 2 eggs
+      { id: '1', ingredientId: 'butter-unsalted', amount: 56 },
+      { id: '2', ingredientId: 'sugar-white', amount: 200 },
+      { id: '3', ingredientId: 'egg-whole', amount: 100, eggSize: 'medium', eggQuantity: 2 },
       { id: '4', ingredientId: 'vanilla-extract', amount: 5 },
-      { id: '5', ingredientId: 'flour-ap', amount: 315 }, // 2.5 cups
+      { id: '5', ingredientId: 'flour-ap', amount: 315 },
       { id: '6', ingredientId: 'baking-powder', amount: 8 },
       { id: '7', ingredientId: 'salt', amount: 3 },
-      { id: '8', ingredientId: 'almonds', amount: 150 }, // 1 cup
+      { id: '8', ingredientId: 'almonds', amount: 150 },
     ],
   },
   {
     id: 'pressed-butter',
     name: 'Pressed Butter Cookie',
+    emoji: '🌸',
     description: 'Very high butter content for smooth, piped dough.',
     examples: ['Spritz Cookies', 'Danish Butter Cookies', 'Piped Rosettes'],
     texture: 'Delicate, buttery, crisp',
     ratioDescription: 'Very high butter, smooth dough',
     keyTraits: ['High butter content', 'Holds piped shapes', 'Delicate texture'],
     baseFormula: [
-      { id: '1', ingredientId: 'butter-unsalted', amount: 227 }, // 1 cup
-      { id: '2', ingredientId: 'sugar-white', amount: 100 }, // 1/2 cup
-      { id: '3', ingredientId: 'egg-yolk', amount: 20, eggSize: 'medium', eggQuantity: 1 }, // 1 yolk
+      { id: '1', ingredientId: 'butter-unsalted', amount: 227 },
+      { id: '2', ingredientId: 'sugar-white', amount: 100 },
+      { id: '3', ingredientId: 'egg-yolk', amount: 20, eggSize: 'medium', eggQuantity: 1 },
       { id: '4', ingredientId: 'vanilla-extract', amount: 5 },
-      { id: '5', ingredientId: 'flour-ap', amount: 250 }, // 2 cups
+      { id: '5', ingredientId: 'flour-ap', amount: 250 },
       { id: '6', ingredientId: 'salt', amount: 2 },
     ],
   },
   {
     id: 'slice-bake',
     name: 'Slice & Bake',
+    emoji: '🔪',
     description: 'Refrigerator dough that holds shape perfectly when sliced.',
     examples: ['Pinwheel Cookies', 'Checkerboard', 'Icebox Cookies'],
     texture: 'Medium crisp, holds shape',
     ratioDescription: 'Medium fat, holds structure well',
     keyTraits: ['Chills into logs', 'Clean slices', 'Uniform shape'],
     baseFormula: [
-      { id: '1', ingredientId: 'butter-unsalted', amount: 170 }, // 3/4 cup
-      { id: '2', ingredientId: 'sugar-white', amount: 150 }, // 3/4 cup
-      { id: '3', ingredientId: 'egg-whole', amount: 50, eggSize: 'medium', eggQuantity: 1 }, // 1 egg
+      { id: '1', ingredientId: 'butter-unsalted', amount: 170 },
+      { id: '2', ingredientId: 'sugar-white', amount: 150 },
+      { id: '3', ingredientId: 'egg-whole', amount: 50, eggSize: 'medium', eggQuantity: 1 },
       { id: '4', ingredientId: 'vanilla-extract', amount: 5 },
-      { id: '5', ingredientId: 'flour-ap', amount: 280 }, // 2 cups
+      { id: '5', ingredientId: 'flour-ap', amount: 280 },
       { id: '6', ingredientId: 'baking-powder', amount: 5 },
       { id: '7', ingredientId: 'salt', amount: 3 },
     ],
@@ -182,53 +192,133 @@ export const cookieTypes: CookieType[] = [
   {
     id: 'molded',
     name: 'Molded Cookie',
+    emoji: '👋',
     description: 'Hand-shaped dough that holds structure during baking.',
     examples: ['Peanut Butter Cookies', 'Russian Tea Cakes', 'Amaretti'],
     texture: 'Tender, structured',
     ratioDescription: 'Dough holds hand-shaped forms',
     keyTraits: ['Shapes by hand', 'Maintains structure', 'Dense texture'],
     baseFormula: [
-      { id: '1', ingredientId: 'butter-unsalted', amount: 113 }, // 1/2 cup
-      { id: '2', ingredientId: 'sugar-brown', amount: 100 }, // 1/2 cup
-      { id: '3', ingredientId: 'sugar-white', amount: 100 }, // 1/2 cup
-      { id: '4', ingredientId: 'egg-whole', amount: 50, eggSize: 'medium', eggQuantity: 1 }, // 1 egg
+      { id: '1', ingredientId: 'butter-unsalted', amount: 113 },
+      { id: '2', ingredientId: 'sugar-brown', amount: 100 },
+      { id: '3', ingredientId: 'sugar-white', amount: 100 },
+      { id: '4', ingredientId: 'egg-whole', amount: 50, eggSize: 'medium', eggQuantity: 1 },
       { id: '5', ingredientId: 'vanilla-extract', amount: 5 },
-      { id: '6', ingredientId: 'flour-ap', amount: 190 }, // 1.5 cups
+      { id: '6', ingredientId: 'flour-ap', amount: 190 },
       { id: '7', ingredientId: 'baking-soda', amount: 5 },
       { id: '8', ingredientId: 'salt', amount: 5 },
     ],
   },
   {
     id: 'macaron-meringue',
-    name: 'Macaron/Meringue',
+    name: 'Macaron / Meringue',
+    emoji: '🫧',
     description: 'Egg-white based cookies with light, airy texture.',
     examples: ['French Macarons', 'Coconut Macaroons', 'Pavlova Cookies'],
     texture: 'Light, airy, crisp exterior',
     ratioDescription: 'No flour or minimal flour, egg-white based',
     keyTraits: ['Egg-white based', 'Light texture', 'Unique technique'],
     baseFormula: [
-      { id: '1', ingredientId: 'egg-white', amount: 100, eggSize: 'medium', eggQuantity: 3 }, // 3 whites
-      { id: '2', ingredientId: 'sugar-white', amount: 200 }, // 1 cup
-      { id: '3', ingredientId: 'sugar-powdered', amount: 100 }, // ~1 cup
+      { id: '1', ingredientId: 'egg-white', amount: 100, eggSize: 'medium', eggQuantity: 3 },
+      { id: '2', ingredientId: 'sugar-white', amount: 200 },
+      { id: '3', ingredientId: 'sugar-powdered', amount: 100 },
       { id: '4', ingredientId: 'vanilla-extract', amount: 5 },
+    ],
+  },
+  {
+    id: 'rolled-cookie',
+    name: 'Rolled Cookie',
+    emoji: '🎄',
+    description: 'Firm dough rolled flat with a rolling pin and cut into shapes with cookie cutters.',
+    examples: ['Sugar Cookies', 'Gingerbread Men', 'Chocolate Cutouts', 'Holiday Shapes'],
+    texture: 'Crisp to tender depending on thickness',
+    ratioDescription: 'Firm dough: less liquid, more flour to hold shape',
+    keyTraits: ['Rolled with rolling pin', 'Cut with cookie cutters', 'Holds precise shapes', 'Perfect for decorating'],
+    baseFormula: [
+      { id: '1', ingredientId: 'butter-unsalted', amount: 227 },
+      { id: '2', ingredientId: 'sugar-white', amount: 200 },
+      { id: '3', ingredientId: 'egg-whole', amount: 50, eggSize: 'medium', eggQuantity: 1 },
+      { id: '4', ingredientId: 'vanilla-extract', amount: 5 },
+      { id: '5', ingredientId: 'flour-ap', amount: 375 },
+      { id: '6', ingredientId: 'baking-powder', amount: 5 },
+      { id: '7', ingredientId: 'salt', amount: 3 },
+    ],
+  },
+  {
+    id: 'sandwich-cookie',
+    name: 'Sandwich Cookie',
+    emoji: '🥪',
+    description: 'Two cookies filled with buttercream, ganache, jam, or marshmallow fluff and sandwiched together.',
+    examples: ['Oreo-Style', 'Whoopie Pies', 'Linzer Cookies', 'Peanut Butter Sandwiches'],
+    texture: 'Crisp or cakey shells with creamy filling',
+    ratioDescription: 'Two matching cookies + filling layer',
+    keyTraits: ['Two-cookie assembly', 'Endless filling variations', 'Impressive presentation', 'Made in two stages'],
+    baseFormula: [
+      { id: '1', ingredientId: 'butter-unsalted', amount: 113 },
+      { id: '2', ingredientId: 'sugar-white', amount: 200 },
+      { id: '3', ingredientId: 'egg-whole', amount: 50, eggSize: 'medium', eggQuantity: 1 },
+      { id: '4', ingredientId: 'vanilla-extract', amount: 5 },
+      { id: '5', ingredientId: 'flour-ap', amount: 250 },
+      { id: '6', ingredientId: 'cocoa-powder', amount: 40 },
+      { id: '7', ingredientId: 'baking-soda', amount: 3 },
+      { id: '8', ingredientId: 'salt', amount: 1 },
+    ],
+  },
+  {
+    id: 'fried-cookie',
+    name: 'Fried Cookie',
+    emoji: '🫓',
+    description: 'Cooked in hot oil instead of an oven — crispy, golden, and often dusted with powdered sugar or drizzled with honey.',
+    examples: ['Zeppole', 'Buñuelos', 'Angel Wings', 'Beignets', 'Struffoli', 'Funnel Cake'],
+    texture: 'Crispy exterior, soft or airy interior',
+    ratioDescription: 'Batter or dough fried at 350°F oil',
+    keyTraits: ['Fried not baked', 'Carnival & European traditions', 'Golden crispy crust', 'Powdered sugar or honey finish'],
+    baseFormula: [
+      { id: '1', ingredientId: 'flour-ap', amount: 250 },
+      { id: '2', ingredientId: 'sugar-white', amount: 25 },
+      { id: '3', ingredientId: 'egg-whole', amount: 100, eggSize: 'medium', eggQuantity: 2 },
+      { id: '4', ingredientId: 'milk-whole', amount: 240 },
+      { id: '5', ingredientId: 'baking-powder', amount: 8 },
+      { id: '6', ingredientId: 'salt', amount: 2 },
+    ],
+  },
+  {
+    id: 'bar-cookie',
+    name: 'Bar Cookie',
+    emoji: '🟫',
+    description: 'Baked in a pan and cut into squares — brownies, blondies, and layered bars.',
+    examples: ['Brownies', 'Blondies', 'Lemon Bars', 'Magic Cookie Bars', 'Cookie Bars'],
+    texture: 'Dense, chewy, or layered',
+    ratioDescription: 'Spread in pan, cut after baking',
+    keyTraits: ['Baked in a pan', 'Cut into squares', 'Layered or single-mix', 'Easy to scale up'],
+    baseFormula: [
+      { id: '1', ingredientId: 'butter-unsalted', amount: 113 },
+      { id: '2', ingredientId: 'sugar-white', amount: 200 },
+      { id: '3', ingredientId: 'egg-whole', amount: 100, eggSize: 'medium', eggQuantity: 2 },
+      { id: '4', ingredientId: 'vanilla-extract', amount: 5 },
+      { id: '5', ingredientId: 'cocoa-powder', amount: 40 },
+      { id: '6', ingredientId: 'flour-ap', amount: 65 },
+      { id: '7', ingredientId: 'salt', amount: 2 },
+      { id: '8', ingredientId: 'baking-powder', amount: 2 },
     ],
   },
   {
     id: 'no-bake',
     name: 'No-Bake Cookie',
+    emoji: '🍯',
     description: 'Structure from sugar crystallization, no oven required.',
     examples: ['Chocolate Oatmeal No-Bake', 'Peanut Butter Haystacks'],
     texture: 'Chewy, fudgy, set firm',
     ratioDescription: 'Sugar cooked to soft ball stage',
     keyTraits: ['No oven needed', 'Quick setting', 'Fudgy texture'],
     baseFormula: [
-      { id: '1', ingredientId: 'butter-unsalted', amount: 113 }, // 1/2 cup
-      { id: '2', ingredientId: 'milk-whole', amount: 120 }, // 1/2 cup
-      { id: '3', ingredientId: 'sugar-white', amount: 400 }, // 2 cups
-      { id: '4', ingredientId: 'cocoa-powder', amount: 40 }, // 1/3 cup
+      { id: '1', ingredientId: 'butter-unsalted', amount: 113 },
+      { id: '2', ingredientId: 'milk-whole', amount: 120 },
+      { id: '3', ingredientId: 'sugar-white', amount: 400 },
+      { id: '4', ingredientId: 'cocoa-powder', amount: 40 },
       { id: '5', ingredientId: 'vanilla-extract', amount: 5 },
-      { id: '6', ingredientId: 'peanut-butter', amount: 120 }, // 1/2 cup
-      { id: '7', ingredientId: 'oats-quick', amount: 270 }, // 3 cups (safe to eat raw)
+      { id: '6', ingredientId: 'peanut-butter', amount: 120 },
+      { id: '7', ingredientId: 'oats-quick', amount: 270 },
     ],
   },
 ];
