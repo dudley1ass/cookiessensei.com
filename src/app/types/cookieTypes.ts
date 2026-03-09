@@ -247,7 +247,7 @@ export const cookieTypes: CookieType[] = [
   {
     id: 'sandwich-cookie',
     name: 'Sandwich Cookie',
-    emoji: '🥪',
+    emoji: '🍪🍪',
     description: 'Two cookies filled with buttercream, ganache, jam, or marshmallow fluff and sandwiched together.',
     examples: ['Oreo-Style', 'Whoopie Pies', 'Linzer Cookies', 'Peanut Butter Sandwiches'],
     texture: 'Crisp or cakey shells with creamy filling',
