@@ -28,37 +28,40 @@ interface Topping {
   category: string;
   caloriesPer100g: number;
   fatPer100g: number;
+  saturatedFatPer100g: number;
+  transFatPer100g: number;
+  cholesterolPer100mg: number;
   sugarPer100g: number;
   carbsPer100g: number;
   proteinPer100g: number;
-  defaultAmountG: number; // typical amount per batch
+  defaultAmountG: number;
 }
 
 const TOPPINGS: Topping[] = [
   // Chocolate
-  { id: 'hershey-kisses', name: "Hershey's Kisses (large)", emoji: '🍫', category: 'Chocolate', caloriesPer100g: 535, fatPer100g: 30, sugarPer100g: 57, carbsPer100g: 62, proteinPer100g: 7, defaultAmountG: 150 },
-  { id: 'reeses-cups-mini', name: "Reese's Mini Cups", emoji: '🥜', category: 'Chocolate', caloriesPer100g: 510, fatPer100g: 30, sugarPer100g: 48, carbsPer100g: 57, proteinPer100g: 10, defaultAmountG: 100 },
-  { id: 'choc-chips', name: 'Chocolate Chips', emoji: '🍫', category: 'Chocolate', caloriesPer100g: 490, fatPer100g: 27, sugarPer100g: 55, carbsPer100g: 64, proteinPer100g: 5, defaultAmountG: 85 },
-  { id: 'white-choc-chips', name: 'White Chocolate Chips', emoji: '⬜', category: 'Chocolate', caloriesPer100g: 533, fatPer100g: 30, sugarPer100g: 59, carbsPer100g: 63, proteinPer100g: 6, defaultAmountG: 85 },
-  { id: 'mini-choc-chips', name: 'Mini Chocolate Chips', emoji: '🍫', category: 'Chocolate', caloriesPer100g: 490, fatPer100g: 27, sugarPer100g: 55, carbsPer100g: 64, proteinPer100g: 5, defaultAmountG: 60 },
-  { id: 'm-and-ms', name: 'M&Ms', emoji: '🌈', category: 'Chocolate', caloriesPer100g: 480, fatPer100g: 18, sugarPer100g: 67, carbsPer100g: 73, proteinPer100g: 4, defaultAmountG: 85 },
+  { id: 'hershey-kisses', name: "Hershey's Kisses (large)", emoji: '🍫', category: 'Chocolate', caloriesPer100g: 535, fatPer100g: 30, saturatedFatPer100g: 18, transFatPer100g: 0, cholesterolPer100mg: 10, sugarPer100g: 57, carbsPer100g: 62, proteinPer100g: 7, defaultAmountG: 150 },
+  { id: 'reeses-cups-mini', name: "Reese's Mini Cups", emoji: '🥜', category: 'Chocolate', caloriesPer100g: 510, fatPer100g: 30, saturatedFatPer100g: 10, transFatPer100g: 0, cholesterolPer100mg: 5, sugarPer100g: 48, carbsPer100g: 57, proteinPer100g: 10, defaultAmountG: 100 },
+  { id: 'choc-chips', name: 'Chocolate Chips', emoji: '🍫', category: 'Chocolate', caloriesPer100g: 490, fatPer100g: 27, saturatedFatPer100g: 16, transFatPer100g: 0, cholesterolPer100mg: 0, sugarPer100g: 55, carbsPer100g: 64, proteinPer100g: 5, defaultAmountG: 85 },
+  { id: 'white-choc-chips', name: 'White Chocolate Chips', emoji: '⬜', category: 'Chocolate', caloriesPer100g: 533, fatPer100g: 30, saturatedFatPer100g: 18, transFatPer100g: 0, cholesterolPer100mg: 8, sugarPer100g: 59, carbsPer100g: 63, proteinPer100g: 6, defaultAmountG: 85 },
+  { id: 'mini-choc-chips', name: 'Mini Chocolate Chips', emoji: '🍫', category: 'Chocolate', caloriesPer100g: 490, fatPer100g: 27, saturatedFatPer100g: 16, transFatPer100g: 0, cholesterolPer100mg: 0, sugarPer100g: 55, carbsPer100g: 64, proteinPer100g: 5, defaultAmountG: 60 },
+  { id: 'm-and-ms', name: 'M&Ms', emoji: '🌈', category: 'Chocolate', caloriesPer100g: 480, fatPer100g: 18, saturatedFatPer100g: 11, transFatPer100g: 0, cholesterolPer100mg: 5, sugarPer100g: 67, carbsPer100g: 73, proteinPer100g: 4, defaultAmountG: 85 },
   // Icing & Frosting
-  { id: 'royal-icing', name: 'Royal Icing', emoji: '🎨', category: 'Icing', caloriesPer100g: 390, fatPer100g: 0, sugarPer100g: 95, carbsPer100g: 97, proteinPer100g: 1, defaultAmountG: 60 },
-  { id: 'buttercream', name: 'Buttercream Frosting', emoji: '🧁', category: 'Icing', caloriesPer100g: 420, fatPer100g: 20, sugarPer100g: 60, carbsPer100g: 62, proteinPer100g: 0, defaultAmountG: 60 },
-  { id: 'cream-cheese-frosting', name: 'Cream Cheese Frosting', emoji: '🧁', category: 'Icing', caloriesPer100g: 380, fatPer100g: 18, sugarPer100g: 52, carbsPer100g: 54, proteinPer100g: 2, defaultAmountG: 60 },
-  { id: 'chocolate-ganache', name: 'Chocolate Ganache Drizzle', emoji: '🍫', category: 'Icing', caloriesPer100g: 430, fatPer100g: 30, sugarPer100g: 40, carbsPer100g: 48, proteinPer100g: 4, defaultAmountG: 40 },
+  { id: 'royal-icing', name: 'Royal Icing', emoji: '🎨', category: 'Icing', caloriesPer100g: 390, fatPer100g: 0, saturatedFatPer100g: 0, transFatPer100g: 0, cholesterolPer100mg: 0, sugarPer100g: 95, carbsPer100g: 97, proteinPer100g: 1, defaultAmountG: 60 },
+  { id: 'buttercream', name: 'Buttercream Frosting', emoji: '🧁', category: 'Icing', caloriesPer100g: 420, fatPer100g: 20, saturatedFatPer100g: 12, transFatPer100g: 0.5, cholesterolPer100mg: 50, sugarPer100g: 60, carbsPer100g: 62, proteinPer100g: 0, defaultAmountG: 60 },
+  { id: 'cream-cheese-frosting', name: 'Cream Cheese Frosting', emoji: '🧁', category: 'Icing', caloriesPer100g: 380, fatPer100g: 18, saturatedFatPer100g: 11, transFatPer100g: 0, cholesterolPer100mg: 45, sugarPer100g: 52, carbsPer100g: 54, proteinPer100g: 2, defaultAmountG: 60 },
+  { id: 'chocolate-ganache', name: 'Chocolate Ganache Drizzle', emoji: '🍫', category: 'Icing', caloriesPer100g: 430, fatPer100g: 30, saturatedFatPer100g: 18, transFatPer100g: 0, cholesterolPer100mg: 20, sugarPer100g: 40, carbsPer100g: 48, proteinPer100g: 4, defaultAmountG: 40 },
   // Sprinkles & Decorations
-  { id: 'rainbow-sprinkles', name: 'Rainbow Sprinkles', emoji: '🌈', category: 'Sprinkles', caloriesPer100g: 380, fatPer100g: 3, sugarPer100g: 80, carbsPer100g: 92, proteinPer100g: 0, defaultAmountG: 15 },
-  { id: 'nonpareils', name: 'Nonpareils', emoji: '✨', category: 'Sprinkles', caloriesPer100g: 380, fatPer100g: 3, sugarPer100g: 80, carbsPer100g: 92, proteinPer100g: 0, defaultAmountG: 10 },
-  { id: 'sanding-sugar', name: 'Sanding Sugar', emoji: '✨', category: 'Sprinkles', caloriesPer100g: 400, fatPer100g: 0, sugarPer100g: 100, carbsPer100g: 100, proteinPer100g: 0, defaultAmountG: 15 },
-  { id: 'pearl-sugar', name: 'Pearl Sugar', emoji: '⚪', category: 'Sprinkles', caloriesPer100g: 400, fatPer100g: 0, sugarPer100g: 100, carbsPer100g: 100, proteinPer100g: 0, defaultAmountG: 15 },
-  { id: 'flaky-salt', name: 'Flaky Sea Salt', emoji: '🧂', category: 'Sprinkles', caloriesPer100g: 0, fatPer100g: 0, sugarPer100g: 0, carbsPer100g: 0, proteinPer100g: 0, defaultAmountG: 3 },
+  { id: 'rainbow-sprinkles', name: 'Rainbow Sprinkles', emoji: '🌈', category: 'Sprinkles', caloriesPer100g: 380, fatPer100g: 3, saturatedFatPer100g: 1, transFatPer100g: 0, cholesterolPer100mg: 0, sugarPer100g: 80, carbsPer100g: 92, proteinPer100g: 0, defaultAmountG: 15 },
+  { id: 'nonpareils', name: 'Nonpareils', emoji: '✨', category: 'Sprinkles', caloriesPer100g: 380, fatPer100g: 3, saturatedFatPer100g: 1, transFatPer100g: 0, cholesterolPer100mg: 0, sugarPer100g: 80, carbsPer100g: 92, proteinPer100g: 0, defaultAmountG: 10 },
+  { id: 'sanding-sugar', name: 'Sanding Sugar', emoji: '✨', category: 'Sprinkles', caloriesPer100g: 400, fatPer100g: 0, saturatedFatPer100g: 0, transFatPer100g: 0, cholesterolPer100mg: 0, sugarPer100g: 100, carbsPer100g: 100, proteinPer100g: 0, defaultAmountG: 15 },
+  { id: 'pearl-sugar', name: 'Pearl Sugar', emoji: '⚪', category: 'Sprinkles', caloriesPer100g: 400, fatPer100g: 0, saturatedFatPer100g: 0, transFatPer100g: 0, cholesterolPer100mg: 0, sugarPer100g: 100, carbsPer100g: 100, proteinPer100g: 0, defaultAmountG: 15 },
+  { id: 'flaky-salt', name: 'Flaky Sea Salt', emoji: '🧂', category: 'Sprinkles', caloriesPer100g: 0, fatPer100g: 0, saturatedFatPer100g: 0, transFatPer100g: 0, cholesterolPer100mg: 0, sugarPer100g: 0, carbsPer100g: 0, proteinPer100g: 0, defaultAmountG: 3 },
   // Nuts & Extras
-  { id: 'chopped-walnuts', name: 'Chopped Walnuts', emoji: '🥜', category: 'Nuts', caloriesPer100g: 654, fatPer100g: 65, sugarPer100g: 3, carbsPer100g: 14, proteinPer100g: 15, defaultAmountG: 50 },
-  { id: 'sliced-almonds', name: 'Sliced Almonds', emoji: '🥜', category: 'Nuts', caloriesPer100g: 579, fatPer100g: 50, sugarPer100g: 5, carbsPer100g: 22, proteinPer100g: 21, defaultAmountG: 30 },
-  { id: 'shredded-coconut', name: 'Shredded Coconut', emoji: '🥥', category: 'Nuts', caloriesPer100g: 354, fatPer100g: 33, sugarPer100g: 6, carbsPer100g: 15, proteinPer100g: 3, defaultAmountG: 40 },
-  { id: 'caramel-drizzle', name: 'Caramel Drizzle', emoji: '🍯', category: 'Extras', caloriesPer100g: 380, fatPer100g: 4, sugarPer100g: 70, carbsPer100g: 76, proteinPer100g: 1, defaultAmountG: 30 },
-  { id: 'powdered-sugar', name: 'Powdered Sugar Dusting', emoji: '⬜', category: 'Extras', caloriesPer100g: 389, fatPer100g: 0, sugarPer100g: 97, carbsPer100g: 100, proteinPer100g: 0, defaultAmountG: 10 },
+  { id: 'chopped-walnuts', name: 'Chopped Walnuts', emoji: '🥜', category: 'Nuts', caloriesPer100g: 654, fatPer100g: 65, saturatedFatPer100g: 6, transFatPer100g: 0, cholesterolPer100mg: 0, sugarPer100g: 3, carbsPer100g: 14, proteinPer100g: 15, defaultAmountG: 50 },
+  { id: 'sliced-almonds', name: 'Sliced Almonds', emoji: '🥜', category: 'Nuts', caloriesPer100g: 579, fatPer100g: 50, saturatedFatPer100g: 4, transFatPer100g: 0, cholesterolPer100mg: 0, sugarPer100g: 5, carbsPer100g: 22, proteinPer100g: 21, defaultAmountG: 30 },
+  { id: 'shredded-coconut', name: 'Shredded Coconut', emoji: '🥥', category: 'Nuts', caloriesPer100g: 354, fatPer100g: 33, saturatedFatPer100g: 29, transFatPer100g: 0, cholesterolPer100mg: 0, sugarPer100g: 6, carbsPer100g: 15, proteinPer100g: 3, defaultAmountG: 40 },
+  { id: 'caramel-drizzle', name: 'Caramel Drizzle', emoji: '🍯', category: 'Extras', caloriesPer100g: 380, fatPer100g: 4, saturatedFatPer100g: 2, transFatPer100g: 0, cholesterolPer100mg: 10, sugarPer100g: 70, carbsPer100g: 76, proteinPer100g: 1, defaultAmountG: 30 },
+  { id: 'powdered-sugar', name: 'Powdered Sugar Dusting', emoji: '⬜', category: 'Extras', caloriesPer100g: 389, fatPer100g: 0, saturatedFatPer100g: 0, transFatPer100g: 0, cholesterolPer100mg: 0, sugarPer100g: 97, carbsPer100g: 100, proteinPer100g: 0, defaultAmountG: 10 },
 ];
 
 const TOPPING_CATEGORIES = ['Chocolate', 'Icing', 'Sprinkles', 'Nuts', 'Extras'];
@@ -139,7 +142,31 @@ export default function App() {
   const servingsPerRecipe = metrics.totalWeight > 0 ? Math.floor(metrics.totalWeight / servingSize) : 0;
   const availableRecipes = getRecipesForCookieType(selectedCookieType.id);
 
-  // Add toppings nutrition to metrics
+  // Convert toppings into pseudo-ingredients for the science engine
+  const toppingPseudoIngredients = toppings.map(st => {
+    const t = TOPPINGS.find(t => t.id === st.toppingId);
+    if (!t) return null;
+    return {
+      ingredientId: st.toppingId,
+      amount: st.amountG,
+      // Map topping nutrition to ingredient-like fields
+      sugar: t.sugarPer100g,
+      fat: t.fatPer100g,
+      saturatedFat: t.saturatedFatPer100g,
+      transFat: t.transFatPer100g,
+      cholesterol: t.cholesterolPer100mg,
+      calories: t.caloriesPer100g,
+      carbs: t.carbsPer100g,
+      protein: t.proteinPer100g,
+      water: 0,
+      waterActivity: t.fatPer100g > 20 ? 0.45 : t.sugarPer100g > 80 ? 0.55 : 0.50,
+      sucroseEquivalence: t.sugarPer100g > 0 ? 0.85 : 0,
+    } as any;
+  }).filter(Boolean);
+
+  const metricsWithToppings = calculateCookieMetrics([...ingredients, ...toppingPseudoIngredients]);
+
+  // Also compute topping nutrition totals for display
   const toppingNutrition = toppings.reduce((acc, st) => {
     const t = TOPPINGS.find(t => t.id === st.toppingId);
     if (!t) return acc;
@@ -154,18 +181,7 @@ export default function App() {
     };
   }, { calories: 0, fat: 0, sugar: 0, carbs: 0, protein: 0, weight: 0 });
 
-  const totalWeight = metrics.totalWeight + toppingNutrition.weight;
-
-  // Merge toppings into metrics for nutrition display
-  const metricsWithToppings = {
-    ...metrics,
-    totalWeight,
-    calories: metrics.calories + (toppingNutrition.calories / (totalWeight || 1)) * 100,
-    fat: metrics.fat + (toppingNutrition.fat / (totalWeight || 1)) * 100,
-    sugar: metrics.sugar + (toppingNutrition.sugar / (totalWeight || 1)) * 100,
-    carbs: metrics.carbs + (toppingNutrition.carbs / (totalWeight || 1)) * 100,
-    protein: metrics.protein + (toppingNutrition.protein / (totalWeight || 1)) * 100,
-  };
+  const totalWeight = metricsWithToppings.totalWeight;
   const totalServings = totalWeight > 0 ? Math.floor(totalWeight / servingSize) : 0;
 
   const filteredToppings = toppingCat === 'all' ? TOPPINGS : TOPPINGS.filter(t => t.category === toppingCat);
