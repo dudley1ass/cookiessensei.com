@@ -344,7 +344,7 @@ export default function App() {
                       </div>
                     </div>
                     <div className="border-t border-gray-100 pt-4">
-                      <MetricsDisplay metrics={metrics} measurementMode={measurementMode} />
+                      <MetricsDisplay metrics={metricsWithToppings} measurementMode={measurementMode} />
                     </div>
                   </>
                 ) : (

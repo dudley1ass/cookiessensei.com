@@ -40,7 +40,7 @@ export function CookieTypeSelector({ cookieTypes, onSelectType }: CookieTypeSele
           <div className="text-center mb-8">
             <div className="flex items-center justify-center gap-2 mb-3">
               <ChefHat className="w-6 h-6 text-red-600" />
-              <h2 className="text-2xl font-bold text-gray-800">12 Professional Cookie Formulas</h2>
+              <h2 className="text-2xl font-bold text-gray-800">{cookieTypes.length} Professional Cookie Formulas</h2>
             </div>
             <p className="text-gray-600 max-w-2xl mx-auto">
               Select a cookie type to load its professional formula. Each formula is based on real
