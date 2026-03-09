@@ -142,46 +142,51 @@ export default function App() {
   const servingsPerRecipe = metrics.totalWeight > 0 ? Math.floor(metrics.totalWeight / servingSize) : 0;
   const availableRecipes = getRecipesForCookieType(selectedCookieType.id);
 
-  // Convert toppings into pseudo-ingredients for the science engine
-  const toppingPseudoIngredients = toppings.map(st => {
-    const t = TOPPINGS.find(t => t.id === st.toppingId);
-    if (!t) return null;
-    return {
-      ingredientId: st.toppingId,
-      amount: st.amountG,
-      // Map topping nutrition to ingredient-like fields
-      sugar: t.sugarPer100g,
-      fat: t.fatPer100g,
-      saturatedFat: t.saturatedFatPer100g,
-      transFat: t.transFatPer100g,
-      cholesterol: t.cholesterolPer100mg,
-      calories: t.caloriesPer100g,
-      carbs: t.carbsPer100g,
-      protein: t.proteinPer100g,
-      water: 0,
-      waterActivity: t.fatPer100g > 20 ? 0.45 : t.sugarPer100g > 80 ? 0.55 : 0.50,
-      sucroseEquivalence: t.sugarPer100g > 0 ? 0.85 : 0,
-    } as any;
-  }).filter(Boolean);
-
-  const metricsWithToppings = calculateCookieMetrics([...ingredients, ...toppingPseudoIngredients]);
-
-  // Also compute topping nutrition totals for display
-  const toppingNutrition = toppings.reduce((acc, st) => {
+  // Calculate toppings totals manually (they aren't in ingredientsDatabase)
+  const toppingTotals = toppings.reduce((acc, st) => {
     const t = TOPPINGS.find(t => t.id === st.toppingId);
     if (!t) return acc;
     const factor = st.amountG / 100;
     return {
-      calories: acc.calories + t.caloriesPer100g * factor,
-      fat: acc.fat + t.fatPer100g * factor,
-      sugar: acc.sugar + t.sugarPer100g * factor,
-      carbs: acc.carbs + t.carbsPer100g * factor,
-      protein: acc.protein + t.proteinPer100g * factor,
-      weight: acc.weight + st.amountG,
+      weight:       acc.weight + st.amountG,
+      calories:     acc.calories + t.caloriesPer100g * factor,
+      fat:          acc.fat + t.fatPer100g * factor,
+      saturatedFat: acc.saturatedFat + t.saturatedFatPer100g * factor,
+      transFat:     acc.transFat + t.transFatPer100g * factor,
+      cholesterol:  acc.cholesterol + t.cholesterolPer100mg * factor,
+      sugar:        acc.sugar + t.sugarPer100g * factor,
+      carbs:        acc.carbs + t.carbsPer100g * factor,
+      protein:      acc.protein + t.proteinPer100g * factor,
+      fatWeight:    acc.fatWeight + (t.fatPer100g * st.amountG / 100),
+      sugarWeight:  acc.sugarWeight + (t.sugarPer100g > 50 ? st.amountG : 0),
     };
-  }, { calories: 0, fat: 0, sugar: 0, carbs: 0, protein: 0, weight: 0 });
+  }, { weight: 0, calories: 0, fat: 0, saturatedFat: 0, transFat: 0, cholesterol: 0, sugar: 0, carbs: 0, protein: 0, fatWeight: 0, sugarWeight: 0 });
 
-  const totalWeight = metricsWithToppings.totalWeight;
+  // Merge toppings into metrics manually
+  const totalWeight = metrics.totalWeight + toppingTotals.weight;
+  const p = totalWeight > 0 ? 100 / totalWeight : 0;
+  const combinedFatWeight = (metrics.fatPercent / 100 * metrics.totalWeight) + toppingTotals.fatWeight;
+  const combinedSugarWeight = (metrics.sugarPercent / 100 * metrics.totalWeight) + toppingTotals.sugarWeight;
+
+  const metricsWithToppings = {
+    ...metrics,
+    totalWeight,
+    calories:     (metrics.calories * metrics.totalWeight / 100 + toppingTotals.calories) * p,
+    fat:          (metrics.fat * metrics.totalWeight / 100 + toppingTotals.fat) * p,
+    saturatedFat: (metrics.saturatedFat * metrics.totalWeight / 100 + toppingTotals.saturatedFat) * p,
+    transFat:     (metrics.transFat * metrics.totalWeight / 100 + toppingTotals.transFat) * p,
+    cholesterol:  (metrics.cholesterol * metrics.totalWeight / 100 + toppingTotals.cholesterol) * p,
+    sugar:        (metrics.sugar * metrics.totalWeight / 100 + toppingTotals.sugar) * p,
+    carbs:        (metrics.carbs * metrics.totalWeight / 100 + toppingTotals.carbs) * p,
+    protein:      (metrics.protein * metrics.totalWeight / 100 + toppingTotals.protein) * p,
+    fatPercent:   totalWeight > 0 ? (combinedFatWeight / totalWeight) * 100 : metrics.fatPercent,
+    sugarPercent: totalWeight > 0 ? (combinedSugarWeight / totalWeight) * 100 : metrics.sugarPercent,
+    sugarContentPercent: totalWeight > 0 ? ((metrics.totalActualSugar + toppingTotals.sugar) / totalWeight) * 100 : metrics.sugarContentPercent,
+    totalActualSugar: metrics.totalActualSugar + toppingTotals.sugar,
+  };
+
+  // Keep toppingNutrition for display (topping weight badge etc.)
+  const toppingNutrition = toppingTotals;
   const totalServings = totalWeight > 0 ? Math.floor(totalWeight / servingSize) : 0;
 
   const filteredToppings = toppingCat === 'all' ? TOPPINGS : TOPPINGS.filter(t => t.category === toppingCat);
