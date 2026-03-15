@@ -10,6 +10,7 @@ export interface CookieType {
   baseFormula: RecipeIngredient[];
   ratioDescription: string;
   keyTraits: string[];
+  articleUrl?: string;
 }
 
 export const cookieTypes: CookieType[] = [
@@ -22,6 +23,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Chewy center, crisp edges',
     ratioDescription: '1 butter : 1 sugar : 1 egg : 2 flour',
     keyTraits: ['Most versatile formula', 'Perfect for mix-ins', 'Classic texture'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-are-chewy',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 227 },
       { id: '2', ingredientId: 'sugar-brown', amount: 150 },
@@ -43,6 +45,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Soft, fluffy, cake-like',
     ratioDescription: 'More eggs, baking powder, often sour cream or milk',
     keyTraits: ['Extra moisture', 'Double leavening', 'Pillow-soft texture'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-spread',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 113 },
       { id: '2', ingredientId: 'sugar-white', amount: 200 },
@@ -64,6 +67,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Crumbly, melt-in-mouth',
     ratioDescription: '1 sugar : 2 butter : 3 flour',
     keyTraits: ['Minimal ingredients', 'High butter content', 'No eggs'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-dont-spread',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 227 },
       { id: '2', ingredientId: 'sugar-powdered', amount: 65 },
@@ -81,6 +85,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Crisp or soft depending on bake',
     ratioDescription: 'Butter + sugar + eggs + baking powder',
     keyTraits: ['Holds shape well', 'Perfect for decorating', 'Versatile texture'],
+    articleUrl: 'https://senseifood.com/cookie-science/brown-sugar-vs-white-sugar',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 170 },
       { id: '2', ingredientId: 'sugar-white', amount: 200 },
@@ -100,6 +105,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Puffy interior, tangy flavor',
     ratioDescription: 'Sugar cookie base + cream of tartar',
     keyTraits: ['Cream of tartar tang', 'Cinnamon-sugar coating', 'Soft and puffy'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-are-chewy',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 170 },
       { id: '2', ingredientId: 'sugar-white', amount: 300 },
@@ -119,6 +125,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Fudgy, rich, intense chocolate',
     ratioDescription: 'High cocoa/chocolate, lower flour',
     keyTraits: ['Very chocolatey', 'Fudgy center', 'Crackled surface'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-are-chewy',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 113 },
       { id: '2', ingredientId: 'sugar-white', amount: 200 },
@@ -141,6 +148,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Hard, crunchy, dry',
     ratioDescription: 'Low fat, dry structure',
     keyTraits: ['Twice-baked', 'Very crunchy', 'Perfect for dipping'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-get-crispy',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 56 },
       { id: '2', ingredientId: 'sugar-white', amount: 200 },
@@ -161,6 +169,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Delicate, buttery, crisp',
     ratioDescription: 'Very high butter, smooth dough',
     keyTraits: ['High butter content', 'Holds piped shapes', 'Delicate texture'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-dont-spread',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 227 },
       { id: '2', ingredientId: 'sugar-white', amount: 100 },
@@ -179,6 +188,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Medium crisp, holds shape',
     ratioDescription: 'Medium fat, holds structure well',
     keyTraits: ['Chills into logs', 'Clean slices', 'Uniform shape'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-dont-spread',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 170 },
       { id: '2', ingredientId: 'sugar-white', amount: 150 },
@@ -198,6 +208,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Tender, structured',
     ratioDescription: 'Dough holds hand-shaped forms',
     keyTraits: ['Shapes by hand', 'Maintains structure', 'Dense texture'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-spread',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 113 },
       { id: '2', ingredientId: 'sugar-brown', amount: 100 },
@@ -218,6 +229,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Light, airy, crisp exterior',
     ratioDescription: 'No flour or minimal flour, egg-white based',
     keyTraits: ['Egg-white based', 'Light texture', 'Unique technique'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-get-crispy',
     baseFormula: [
       { id: '1', ingredientId: 'egg-white', amount: 100, eggSize: 'medium', eggQuantity: 3 },
       { id: '2', ingredientId: 'sugar-white', amount: 200 },
@@ -234,6 +246,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Crisp to tender depending on thickness',
     ratioDescription: 'Firm dough: less liquid, more flour to hold shape',
     keyTraits: ['Rolled with rolling pin', 'Cut with cookie cutters', 'Holds precise shapes', 'Perfect for decorating'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-flatten',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 227 },
       { id: '2', ingredientId: 'sugar-white', amount: 200 },
@@ -253,6 +266,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Crisp or cakey shells with creamy filling',
     ratioDescription: 'Two matching cookies + filling layer',
     keyTraits: ['Two-cookie assembly', 'Endless filling variations', 'Impressive presentation', 'Made in two stages'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-are-chewy',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 113 },
       { id: '2', ingredientId: 'sugar-white', amount: 200 },
@@ -273,6 +287,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Crispy exterior, soft or airy interior',
     ratioDescription: 'Batter or dough fried at 350°F oil',
     keyTraits: ['Fried not baked', 'Carnival & European traditions', 'Golden crispy crust', 'Powdered sugar or honey finish'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-get-crispy',
     baseFormula: [
       { id: '1', ingredientId: 'flour-ap', amount: 250 },
       { id: '2', ingredientId: 'sugar-white', amount: 25 },
@@ -291,6 +306,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Dense, chewy, or layered',
     ratioDescription: 'Spread in pan, cut after baking',
     keyTraits: ['Baked in a pan', 'Cut into squares', 'Layered or single-mix', 'Easy to scale up'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-are-chewy',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 113 },
       { id: '2', ingredientId: 'sugar-white', amount: 200 },
@@ -311,6 +327,7 @@ export const cookieTypes: CookieType[] = [
     texture: 'Chewy, fudgy, set firm',
     ratioDescription: 'Sugar cooked to soft ball stage',
     keyTraits: ['No oven needed', 'Quick setting', 'Fudgy texture'],
+    articleUrl: 'https://senseifood.com/cookie-science/why-cookies-turn-hard',
     baseFormula: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 113 },
       { id: '2', ingredientId: 'milk-whole', amount: 120 },
