@@ -467,6 +467,184 @@ function IngredientRow({ recipeIng, measurementMode, onAmountChange, onUnitChang
   );
 }
 
+// ── Recipe Summary Engine ─────────────────────────────────────
+interface RecipeSummary {
+  headline: string;
+  description: string;
+  tags: { label: string; color: string }[];
+  severity: 'good' | 'warning' | 'problem';
+}
+
+function computeRecipeSummary(
+  ingredients: RecipeIngredient[],
+  db: typeof ingredientsDatabase
+): RecipeSummary | null {
+  if (ingredients.length === 0) return null;
+
+  const totals: Record<string, number> = {};
+  for (const ri of ingredients) {
+    const ing = db.find(i => i.id === ri.ingredientId);
+    const cat = ing?.category ?? 'other';
+    totals[cat] = (totals[cat] ?? 0) + ri.amount;
+  }
+
+  const flour    = totals['flour']    ?? 0;
+  const fat      = totals['fat']      ?? 0;
+  const sugar    = totals['sugar']    ?? 0;
+  const egg      = totals['egg']      ?? 0;
+  const liquid   = totals['liquid']   ?? 0;
+  const dairy    = totals['dairy']    ?? 0;
+  const leavener = totals['leavener'] ?? 0;
+  const totalMoisture = egg + liquid + dairy;
+
+  if (flour === 0) {
+    return {
+      headline: '🌾 No flour detected',
+      description: 'Add flour to anchor your recipe. Without flour, there\'s no structure to hold the cookie together.',
+      tags: [{ label: 'Missing structure', color: 'red' }],
+      severity: 'problem',
+    };
+  }
+
+  const fatRatio      = fat / flour;
+  const sugarRatio    = sugar / flour;
+  const eggRatio      = egg / flour;
+  const moistureRatio = totalMoisture / flour;
+  const leavenerRatio = leavener / flour;
+
+  const issues: string[] = [];
+  const tags: { label: string; color: string }[] = [];
+  let severity: 'good' | 'warning' | 'problem' = 'good';
+
+  // ── Diagnose each ratio ──
+  const tooMuchSugar   = sugarRatio > 0.95;
+  const wayTooMuchSugar = sugarRatio > 1.2;
+  const tooLittleFlour = fatRatio > 0.65 || sugarRatio > 0.85;
+  const tooManyEggs    = eggRatio > 0.45;
+  const tooMuchFat     = fatRatio > 0.65;
+  const tooLittleFat   = fatRatio < 0.25 && flour > 100;
+  const tooMuchLiquid  = moistureRatio > 0.9;
+  const wayTooMuchLiquid = moistureRatio > 1.1;
+  const tooMuchLeavener = leavenerRatio > 0.025;
+
+  if (wayTooMuchLiquid) {
+    return {
+      headline: '💧 This will not bake into cookies',
+      description: 'The liquid content is far too high relative to flour. This batter will not hold any shape — it will spread into a puddle or just make hot liquid. Dramatically reduce milk/liquid or add much more flour.',
+      tags: [{ label: 'Too much liquid', color: 'red' }, { label: 'Won\'t bake', color: 'red' }],
+      severity: 'problem',
+    };
+  }
+
+  if (wayTooMuchSugar && eggRatio > 0.35 && fatRatio < 0.5) {
+    return {
+      headline: '🍬 Thin, crispy edges — puffy cakey center',
+      description: 'These cookies will spread excessively due to high sugar and low flour, creating thin crispy edges with a soft, cakey center from the high egg ratio. Expect very sweet flavor and potential over-browning on the edges.',
+      tags: [
+        { label: 'Overly sweet', color: 'red' },
+        { label: 'Excessive spread', color: 'red' },
+        { label: 'Cakey center', color: 'yellow' },
+        { label: 'Dark edges', color: 'yellow' },
+      ],
+      severity: 'problem',
+    };
+  }
+
+  // Build issues list
+  if (wayTooMuchSugar) { issues.push('sugar is very high — expect thin, sweet, fast-browning cookies'); tags.push({ label: 'Too much sugar', color: 'red' }); severity = 'problem'; }
+  else if (tooMuchSugar) { issues.push('sugar is elevated — cookies will spread more and brown faster'); tags.push({ label: 'High sugar', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
+
+  if (fatRatio > 0.85) { issues.push('butter is very high — cookies will be greasy and spread flat'); tags.push({ label: 'Too much fat', color: 'red' }); severity = 'problem'; }
+  else if (tooMuchFat) { issues.push('butter is elevated — expect significant spread, chill dough before baking'); tags.push({ label: 'High fat', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
+  else if (tooLittleFat) { issues.push('low butter for this flour — dough may be dry and stiff'); tags.push({ label: 'Low fat', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
+
+  if (eggRatio > 0.6) { issues.push('too many eggs for this flour — cookies will be puffy and cakey'); tags.push({ label: 'Too many eggs', color: 'red' }); severity = 'problem'; }
+  else if (tooManyEggs) { issues.push('high egg ratio — cookies will lean soft and cakey'); tags.push({ label: 'High eggs', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
+
+  if (tooMuchLiquid) { issues.push('liquid is high — dough will be very soft, needs chilling or more flour'); tags.push({ label: 'High moisture', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
+
+  if (leavenerRatio > 0.04) { issues.push('leavener is very high — cookies may taste bitter or soapy'); tags.push({ label: 'Too much leavener', color: 'red' }); severity = 'problem'; }
+  else if (tooMuchLeavener) { issues.push('leavener is slightly high — may cause excessive puffing'); tags.push({ label: 'High leavener', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
+
+  // ── Positive descriptions when balanced ──
+  if (severity === 'good') {
+    const chewy   = fatRatio >= 0.35 && fatRatio <= 0.55 && sugarRatio >= 0.4 && sugarRatio <= 0.7 && eggRatio >= 0.15 && eggRatio <= 0.35;
+    const crispy  = fatRatio >= 0.3 && sugarRatio >= 0.6 && eggRatio < 0.25 && moistureRatio < 0.3;
+    const cakey   = eggRatio > 0.3 && moistureRatio > 0.3 && fatRatio < 0.4;
+    const buttery = fatRatio > 0.55 && sugarRatio < 0.5;
+
+    if (chewy) {
+      return { headline: '✅ Well-balanced — Classic Chewy Cookie', description: 'Your ratios are dialed in for a classic chewy cookie with a soft center and slightly crisp edges. The fat, sugar, and egg balance looks great.', tags: [{ label: 'Chewy', color: 'green' }, { label: 'Balanced', color: 'green' }], severity: 'good' };
+    }
+    if (crispy) {
+      return { headline: '✅ Balanced — Crispy Cookie Profile', description: 'Higher sugar and moderate fat with low moisture points toward a crispy, snappy cookie. Expect good browning and thin, crunchy texture.', tags: [{ label: 'Crispy', color: 'green' }, { label: 'Good spread', color: 'green' }], severity: 'good' };
+    }
+    if (cakey) {
+      return { headline: '✅ Balanced — Soft Cake-Style Cookie', description: 'High eggs and moisture with moderate fat gives a pillowy, cake-like cookie. Great for frosted sugar cookies or pumpkin cookies.', tags: [{ label: 'Soft & cakey', color: 'green' }, { label: 'Balanced', color: 'green' }], severity: 'good' };
+    }
+    if (buttery) {
+      return { headline: '✅ Balanced — Buttery Shortbread Style', description: 'High fat and low sugar/egg points to a rich, crumbly, shortbread-style cookie. Minimal spread, melt-in-mouth texture.', tags: [{ label: 'Shortbread style', color: 'green' }, { label: 'Rich', color: 'green' }], severity: 'good' };
+    }
+    return { headline: '✅ Recipe looks balanced', description: 'Your ingredient ratios are within normal baking ranges. Add more ingredients to refine the profile.', tags: [{ label: 'Balanced', color: 'green' }], severity: 'good' };
+  }
+
+  // Build summary from issues
+  const headline = severity === 'problem'
+    ? `⚠️ Recipe has ${issues.length > 1 ? 'multiple issues' : 'an issue'} to fix`
+    : `💡 Recipe has ${issues.length} thing${issues.length > 1 ? 's' : ''} to watch`;
+
+  const description = issues.length === 1
+    ? `${issues[0].charAt(0).toUpperCase()}${issues[0].slice(1)}.`
+    : `${issues.map((s, i) => `${i + 1}. ${s.charAt(0).toUpperCase()}${s.slice(1)}`).join('. ')}.`;
+
+  return { headline, description, tags, severity };
+}
+
+function RecipeSummaryCard({ ingredients }: { ingredients: RecipeIngredient[] }) {
+  const summary = computeRecipeSummary(ingredients, ingredientsDatabase);
+  if (!summary) return null;
+
+  const bgClass = summary.severity === 'good'
+    ? 'bg-green-50 border-green-200'
+    : summary.severity === 'problem'
+    ? 'bg-red-50 border-red-200'
+    : 'bg-yellow-50 border-yellow-200';
+
+  const headlineClass = summary.severity === 'good'
+    ? 'text-green-800'
+    : summary.severity === 'problem'
+    ? 'text-red-800'
+    : 'text-yellow-800';
+
+  const descClass = summary.severity === 'good'
+    ? 'text-green-700'
+    : summary.severity === 'problem'
+    ? 'text-red-700'
+    : 'text-yellow-700';
+
+  const tagColors: Record<string, string> = {
+    red:    'bg-red-100 text-red-700 border-red-200',
+    yellow: 'bg-yellow-100 text-yellow-700 border-yellow-200',
+    green:  'bg-green-100 text-green-700 border-green-200',
+  };
+
+  return (
+    <div className={`rounded-xl border p-3 ${bgClass}`}>
+      <div className={`text-sm font-bold mb-1 ${headlineClass}`}>{summary.headline}</div>
+      <p className={`text-xs leading-relaxed mb-2 ${descClass}`}>{summary.description}</p>
+      {summary.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {summary.tags.map((tag, i) => (
+            <span key={i} className={`text-xs px-2 py-0.5 rounded-full border font-medium ${tagColors[tag.color] ?? tagColors.yellow}`}>
+              {tag.label}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Component ────────────────────────────────────────────
 export function IngredientSelector({ ingredients, onIngredientsChange, measurementMode }: IngredientSelectorProps) {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -508,6 +686,8 @@ export function IngredientSelector({ ingredients, onIngredientsChange, measureme
           No ingredients yet. Click Add Ingredient to start.
         </div>
       )}
+
+      <RecipeSummaryCard ingredients={ingredients} />
 
       <div className="flex gap-2 pt-1">
         <button onClick={() => setShowAddModal(true)}
