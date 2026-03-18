@@ -18,6 +18,116 @@ const UNIT_OPTIONS: Record<MeasurementMode, UnitType[]> = {
   volumetric: ['cups', 'tbsp', 'tsp', 'ml', 'fl oz'],
 };
 
+// ── Ingredient Warning Engine ─────────────────────────────────
+// All thresholds are ratios relative to flour (the baseline structural ingredient).
+// Warnings are suppressed when compensating ingredients bring the recipe back into balance.
+
+interface IngredientWarning {
+  level: 'yellow' | 'red';
+  message: string;
+}
+
+function computeWarnings(
+  ingredients: RecipeIngredient[],
+  db: typeof ingredientsDatabase
+): Record<string, IngredientWarning> {
+  const warnings: Record<string, IngredientWarning> = {};
+
+  // Sum grams by category
+  const totals: Record<string, number> = {};
+  for (const ri of ingredients) {
+    const ing = db.find(i => i.id === ri.ingredientId);
+    const cat = ing?.category ?? 'other';
+    totals[cat] = (totals[cat] ?? 0) + ri.amount;
+  }
+
+  const flour    = totals['flour']    ?? 0;
+  const fat      = totals['fat']      ?? 0;
+  const sugar    = totals['sugar']    ?? 0;
+  const egg      = totals['egg']      ?? 0;
+  const liquid   = totals['liquid']   ?? 0;
+  const dairy    = totals['dairy']    ?? 0;
+  const leavener = totals['leavener'] ?? 0;
+
+  // Total moisture = eggs + liquid + dairy (all contribute moisture)
+  const totalMoisture = egg + liquid + dairy;
+  // Total structure = flour + egg protein
+  const totalStructure = flour + egg * 0.5;
+  // Total flow = fat + sugar (drive spread)
+  const totalFlow = fat + sugar;
+
+  // Only run checks if flour is present (anchor ingredient)
+  if (flour === 0) return warnings;
+
+  for (const ri of ingredients) {
+    const ing = db.find(i => i.id === ri.ingredientId);
+    const cat = ing?.category ?? 'other';
+    const g = ri.amount;
+
+    if (cat === 'flour') {
+      // Flour vs fat ratio — too much flour without enough fat/moisture
+      const flourToFat = flour / Math.max(fat, 1);
+      if (flourToFat > 3.5 && totalMoisture < flour * 0.4) {
+        warnings[ri.id] = { level: 'red', message: 'Way too much flour for this fat & moisture — cookies will be dry and crumbly. Add more butter, eggs, or liquid.' };
+      } else if (flourToFat > 2.8 && totalMoisture < flour * 0.5) {
+        warnings[ri.id] = { level: 'yellow', message: 'Flour is high relative to fat and moisture — consider adding more butter or eggs for balance.' };
+      }
+    }
+
+    if (cat === 'fat') {
+      const fatToFlour = fat / Math.max(flour, 1);
+      if (fatToFlour > 0.85) {
+        warnings[ri.id] = { level: 'red', message: 'Too much fat — cookies will be greasy and spread into flat puddles. Reduce butter or add more flour.' };
+      } else if (fatToFlour > 0.65) {
+        warnings[ri.id] = { level: 'yellow', message: 'Fat is on the high side — expect significant spread. May need chilling before baking.' };
+      } else if (fatToFlour < 0.25 && flour > 100) {
+        warnings[ri.id] = { level: 'yellow', message: 'Low fat for this amount of flour — cookies may be dry and tough.' };
+      }
+    }
+
+    if (cat === 'sugar') {
+      const sugarToFlour = sugar / Math.max(flour, 1);
+      if (sugarToFlour > 1.2) {
+        warnings[ri.id] = { level: 'red', message: 'Too much sugar — cookies will be overly sweet, thin, and burn easily. Reduce sugar or add more flour.' };
+      } else if (sugarToFlour > 0.95) {
+        warnings[ri.id] = { level: 'yellow', message: 'Sugar is high — expect more spread and browning. Watch bake time carefully.' };
+      } else if (sugarToFlour < 0.2 && flour > 100) {
+        warnings[ri.id] = { level: 'yellow', message: 'Low sugar — cookies may be pale, bland, and dense.' };
+      }
+    }
+
+    if (cat === 'egg') {
+      const eggToFlour = egg / Math.max(flour, 1);
+      if (eggToFlour > 0.6) {
+        warnings[ri.id] = { level: 'red', message: 'Too many eggs for this flour — cookies will be puffy and cakey, not chewy. Reduce eggs or add more flour.' };
+      } else if (eggToFlour > 0.45) {
+        warnings[ri.id] = { level: 'yellow', message: 'High egg ratio — cookies will lean cakey. Good for soft cookies, but may not be what you want.' };
+      }
+    }
+
+    if (cat === 'liquid' || cat === 'dairy') {
+      const liquidToFlour = totalMoisture / Math.max(flour, 1);
+      if (liquidToFlour > 1.1) {
+        warnings[ri.id] = { level: 'red', message: 'Way too much liquid — batter will not hold shape and cookies won\'t bake properly. This will make hot liquid, not cookies.' };
+      } else if (liquidToFlour > 0.7) {
+        warnings[ri.id] = { level: 'yellow', message: 'High moisture content — dough will be very soft. Chill well before baking or add more flour.' };
+      }
+    }
+
+    if (cat === 'leavener') {
+      // Baking soda/powder ratio to flour (typical: 1 tsp baking soda per 280g flour = ~5g)
+      const leavenerToFlour = leavener / Math.max(flour, 1);
+      if (leavenerToFlour > 0.04) {
+        warnings[ri.id] = { level: 'red', message: 'Too much leavener — cookies will taste bitter and soapy. Typical is 1 tsp per 2.25 cups flour.' };
+      } else if (leavenerToFlour > 0.025) {
+        warnings[ri.id] = { level: 'yellow', message: 'Leavener is on the high side — may cause excessive puffing and a slightly off taste.' };
+      }
+    }
+  }
+
+  return warnings;
+}
+
 // ── Density map (g per cup) ──────────────────────────────────
 const DENSITY: Record<string, number> = {
   flour:     0.507,
@@ -235,13 +345,14 @@ function AddIngredientModal({ existing, onAdd, onClose }: {
 }
 
 // ── Ingredient Row ────────────────────────────────────────────
-function IngredientRow({ recipeIng, measurementMode, onAmountChange, onUnitChange, onEggSizeChange, onRemove }: {
+function IngredientRow({ recipeIng, measurementMode, onAmountChange, onUnitChange, onEggSizeChange, onRemove, warning }: {
   recipeIng: RecipeIngredient;
   measurementMode: MeasurementMode;
   onAmountChange: (id: string, grams: number) => void;
   onUnitChange: (id: string, unit: UnitType) => void;
   onEggSizeChange: (id: string, size: EggSize) => void;
   onRemove: (id: string) => void;
+  warning?: IngredientWarning;
 }) {
   const ingredient = ingredientsDatabase.find(i => i.id === recipeIng.ingredientId);
   const displayName = ingredient?.name || recipeIng.customName || 'Custom Ingredient';
@@ -274,7 +385,8 @@ function IngredientRow({ recipeIng, measurementMode, onAmountChange, onUnitChang
   };
 
   return (
-    <div className="flex items-center gap-2 py-2 border-b border-gray-100 last:border-0">
+    <div className="border-b border-gray-100 last:border-0">
+      <div className="flex items-center gap-2 py-2">
       <span className="text-base flex-shrink-0">{catEmoji}</span>
       <div className="flex-1 min-w-0">
         <div className="text-sm font-medium text-gray-800 truncate">{displayName}</div>
@@ -314,7 +426,6 @@ function IngredientRow({ recipeIng, measurementMode, onAmountChange, onUnitChang
             </select>
           </>
         ) : (
-          // Volumetric — whole number + fraction label + unit + optional secondary
           <>
             <input type="number" value={vol.primaryWhole} min={0} step={1}
               onChange={e => handlePrimaryVolChange(parseFloat(e.target.value) || 0)}
@@ -341,6 +452,17 @@ function IngredientRow({ recipeIng, measurementMode, onAmountChange, onUnitChang
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
+      </div>
+      {warning && (
+        <div className={`mb-2 px-3 py-1.5 rounded-lg text-xs flex items-start gap-1.5 ${
+          warning.level === 'red'
+            ? 'bg-red-50 text-red-700 border border-red-200'
+            : 'bg-yellow-50 text-yellow-800 border border-yellow-200'
+        }`}>
+          <span className="flex-shrink-0 mt-0.5">{warning.level === 'red' ? '🚨' : '⚠️'}</span>
+          <span>{warning.message}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -349,6 +471,8 @@ function IngredientRow({ recipeIng, measurementMode, onAmountChange, onUnitChang
 export function IngredientSelector({ ingredients, onIngredientsChange, measurementMode }: IngredientSelectorProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCustomDialog, setShowCustomDialog] = useState(false);
+
+  const warnings = computeWarnings(ingredients, ingredientsDatabase);
 
   const addIngredient = (ingredientId: string) => {
     const ingredient = ingredientsDatabase.find(i => i.id === ingredientId);
@@ -371,6 +495,7 @@ export function IngredientSelector({ ingredients, onIngredientsChange, measureme
               key={recipeIng.id}
               recipeIng={recipeIng}
               measurementMode={measurementMode}
+              warning={warnings[recipeIng.id]}
               onAmountChange={(id, grams) => onIngredientsChange(ingredients.map(i => i.id === id ? { ...i, amount: grams } : i))}
               onUnitChange={(id, unit) => onIngredientsChange(ingredients.map(i => i.id === id ? { ...i, displayUnit: unit } : i))}
               onEggSizeChange={(id, size) => onIngredientsChange(ingredients.map(i => i.id === id ? { ...i, eggSize: size, amount: EGG_WEIGHTS[size] } : i))}
