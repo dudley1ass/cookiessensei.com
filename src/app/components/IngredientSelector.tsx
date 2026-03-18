@@ -365,9 +365,9 @@ function IngredientRow({ recipeIng, measurementMode, onAmountChange, onUnitChang
   const [imperialUnit, setImperialUnit] = useState<ImperialUnit>(() => bestImperialUnit(recipeIng.amount));
   const [volUnit, setVolUnit] = useState<VolUnit>(() => bestVolUnit(recipeIng.amount, category));
 
-  useEffect(() => { setMetricUnit(bestMetricUnit(recipeIng.amount)); }, [recipeIng.id, recipeIng.amount]);
-  useEffect(() => { setImperialUnit(bestImperialUnit(recipeIng.amount)); }, [recipeIng.id, recipeIng.amount]);
-  useEffect(() => { setVolUnit(bestVolUnit(recipeIng.amount, category)); }, [recipeIng.id, recipeIng.amount, category]);
+  useEffect(() => { setMetricUnit(bestMetricUnit(recipeIng.amount)); }, [recipeIng.id]);
+  useEffect(() => { setImperialUnit(bestImperialUnit(recipeIng.amount)); }, [recipeIng.id]);
+  useEffect(() => { setVolUnit(bestVolUnit(recipeIng.amount, category)); }, [recipeIng.id]);
 
   const vol = volDecompose(recipeIng.amount, category, volUnit);
 
