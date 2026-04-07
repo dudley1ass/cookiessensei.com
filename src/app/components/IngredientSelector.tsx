@@ -3,7 +3,6 @@ import { Plus, X, Search, Trash2, AlertCircle } from 'lucide-react';
 import { ingredientsDatabase } from '../data/ingredients';
 import { RecipeIngredient, UnitType, EggSize } from '../types/cookie';
 import { CustomIngredientDialog } from './CustomIngredientDialog';
-import { Alert, AlertDescription, AlertTitle } from './ui/alert';
 import { cn } from './ui/utils';
 
 type MeasurementMode = 'metric' | 'imperial' | 'volumetric';
@@ -21,26 +20,29 @@ const UNIT_OPTIONS: Record<MeasurementMode, UnitType[]> = {
 };
 
 // ── Ingredient Warning Engine ─────────────────────────────────
-// Cookie app = cookie-style ratios only (aligned with Infusion Sensei `CreateRecipes.tsx`
-// when `isCookieStyle`: fat/sugar/egg/leavener bands + Infusion copy).
-// Infusion skips flour-vs-fat “dry dough” warnings for cookies — same here.
+// Infusion Sensei–aligned bands; thresholds vary by cookie family (bar/brownie/fried/high-butter).
 
-/** Short title + body; formula banner and per-row warnings share the same copy. */
+/** Short title + body; row-level warnings only (no duplicate formula banner). */
 interface IngredientWarning {
   level: 'yellow' | 'red';
   title: string;
   message: string;
 }
 
-interface FormulaAlert {
-  id: string;
-  level: 'yellow' | 'red';
-  title: string;
-  message: string;
+export interface RatioBands {
+  fatProblem: number;
+  fatWarn: number;
+  sugarProblem: number;
+  sugarWarn: number;
+  eggProblem: number;
+  eggWarn: number;
+  liquidProblem: number;
+  liquidWarn: number;
+  leavenerProblem: number;
+  leavenerWarn: number;
 }
 
-/** Cookie-template thresholds from Infusion Sensei (non–cake-like / non-bar). */
-const COOKIE_RATIO = {
+const COOKIE_RATIO_STANDARD: RatioBands = {
   fatProblem: 1.0,
   fatWarn: 0.85,
   sugarProblem: 1.55,
@@ -51,7 +53,69 @@ const COOKIE_RATIO = {
   liquidWarn: 0.7,
   leavenerProblem: 0.12,
   leavenerWarn: 0.08,
-} as const;
+};
+
+type RatioProfile = 'standard' | 'brownie' | 'bar' | 'fried' | 'no-bake' | 'high-butter';
+
+export function ratioProfileForCookieFamily(id: string): RatioProfile {
+  switch (id) {
+    case 'brownie-cookie':
+      return 'brownie';
+    case 'bar-cookie':
+      return 'bar';
+    case 'fried-cookie':
+      return 'fried';
+    case 'no-bake':
+      return 'no-bake';
+    case 'shortbread':
+    case 'pressed-butter':
+      return 'high-butter';
+    default:
+      return 'standard';
+  }
+}
+
+const OFF = 1e9;
+
+export function getRatioBands(profile: RatioProfile): RatioBands {
+  const b: RatioBands = { ...COOKIE_RATIO_STANDARD };
+  switch (profile) {
+    case 'brownie':
+      b.fatProblem = 1.8;
+      b.fatWarn = 1.4;
+      b.sugarProblem = 5.0;
+      b.sugarWarn = 3.9;
+      b.eggProblem = 3.0;
+      b.eggWarn = 2.6;
+      return b;
+    case 'bar':
+      b.fatProblem = 1.8;
+      b.fatWarn = 1.4;
+      b.sugarProblem = 2.5;
+      b.sugarWarn = 1.85;
+      b.liquidProblem = 3.6;
+      b.liquidWarn = 3.0;
+      return b;
+    case 'fried':
+      b.fatProblem = OFF;
+      b.fatWarn = OFF;
+      b.sugarProblem = OFF;
+      b.sugarWarn = OFF;
+      b.liquidProblem = OFF;
+      b.liquidWarn = OFF;
+      return b;
+    case 'high-butter':
+      b.fatProblem = 1.8;
+      b.fatWarn = 1.4;
+      return b;
+    default:
+      return b;
+  }
+}
+
+export function isFlourlessCookieFamily(id: string): boolean {
+  return id === 'no-bake' || id === 'macaron-meringue';
+}
 
 const SENSEI = {
   fatRed: {
@@ -123,8 +187,6 @@ const SENSEI = {
       'Leavener is on the high side — may cause excessive puffing. Fine for pancakes; watch it for dense cookies or lean breads.',
   },
 } as const;
-
-type SenseiKey = keyof typeof SENSEI;
 
 function sumCategoryTotals(
   ingredients: RecipeIngredient[],
@@ -198,7 +260,7 @@ function isLargestSugarContributor(
   db: typeof ingredientsDatabase
 ): boolean {
   const ing = db.find((i) => i.id === ri.ingredientId);
-  if (!ing || ing.category !== 'sugar') return false;
+  if (!ing || ing.category !== 'sugar' || ri.amount <= 0) return false;
   return !ingredients.some((other) => {
     if (other.id === ri.id) return false;
     const o = db.find((i) => i.id === other.ingredientId);
@@ -206,62 +268,71 @@ function isLargestSugarContributor(
   });
 }
 
-function computeFormulaAlerts(
+function isLargestFatContributor(
+  ri: RecipeIngredient,
   ingredients: RecipeIngredient[],
   db: typeof ingredientsDatabase
-): FormulaAlert[] {
-  const totals = sumCategoryTotals(ingredients, db);
-  const flour = totals['flour'] ?? 0;
-  const fat = totals['fat'] ?? 0;
-  const sugar = totals['sugar'] ?? 0;
-  const sugarBalanced = sugarGramsForBakingRatio(ingredients, db, sugar);
-  const leavener = leavenerGramsForFlourRatio(ingredients, db);
-  const egg = totals['egg'] ?? 0;
-  const liquid = totals['liquid'] ?? 0;
-  const dairy = totals['dairy'] ?? 0;
-  const totalMoisture = egg + liquid + dairy;
-  const structural = structuralFlourGrams(ingredients, db);
-  const flourDen = Math.max(flour, 1);
-  const flourForEgg = Math.max(structural || flour, 1);
+): boolean {
+  const ing = db.find((i) => i.id === ri.ingredientId);
+  if (!ing || ing.category !== 'fat' || ri.amount <= 0) return false;
+  return !ingredients.some((other) => {
+    if (other.id === ri.id) return false;
+    const o = db.find((i) => i.id === other.ingredientId);
+    return o?.category === 'fat' && other.amount > ri.amount;
+  });
+}
 
-  if (flour <= 0) return [];
+function isLargestEggContributor(
+  ri: RecipeIngredient,
+  ingredients: RecipeIngredient[],
+  db: typeof ingredientsDatabase
+): boolean {
+  const ing = db.find((i) => i.id === ri.ingredientId);
+  if (!ing || ing.category !== 'egg' || ri.amount <= 0) return false;
+  return !ingredients.some((other) => {
+    if (other.id === ri.id) return false;
+    const o = db.find((i) => i.id === other.ingredientId);
+    return o?.category === 'egg' && other.amount > ri.amount;
+  });
+}
 
-  const fatToFlour = fat / flourDen;
-  const sugarToFlour = sugarBalanced / flourDen;
-  const eggToFlour = egg / flourForEgg;
-  const liquidToFlour = totalMoisture / flourDen;
-  const leavenerToFlour = leavener / flourDen;
+function isLargestMoistureContributor(
+  ri: RecipeIngredient,
+  ingredients: RecipeIngredient[],
+  db: typeof ingredientsDatabase
+): boolean {
+  const ing = db.find((i) => i.id === ri.ingredientId);
+  if (!ing || (ing.category !== 'liquid' && ing.category !== 'dairy') || ri.amount <= 0) return false;
+  return !ingredients.some((other) => {
+    if (other.id === ri.id) return false;
+    const o = db.find((i) => i.id === other.ingredientId);
+    if (!o || (o.category !== 'liquid' && o.category !== 'dairy')) return false;
+    return other.amount > ri.amount;
+  });
+}
 
-  const order: { id: string; key: SenseiKey }[] = [];
-
-  if (fatToFlour > COOKIE_RATIO.fatProblem) order.push({ id: 'fat-red', key: 'fatRed' });
-  else if (fatToFlour > COOKIE_RATIO.fatWarn) order.push({ id: 'fat-yellow', key: 'fatYellow' });
-  else if (fatToFlour < 0.25 && flour > 100) order.push({ id: 'fat-low', key: 'fatLow' });
-
-  if (sugarToFlour > COOKIE_RATIO.sugarProblem) order.push({ id: 'sugar-red', key: 'sugarRed' });
-  else if (sugarToFlour > COOKIE_RATIO.sugarWarn) order.push({ id: 'sugar-yellow', key: 'sugarYellow' });
-  else if (sugarToFlour < 0.2 && flour > 100) order.push({ id: 'sugar-low', key: 'sugarLow' });
-
-  if (eggToFlour > COOKIE_RATIO.eggProblem) order.push({ id: 'egg-red', key: 'eggRed' });
-  else if (eggToFlour > COOKIE_RATIO.eggWarn) order.push({ id: 'egg-yellow', key: 'eggYellow' });
-
-  if (liquidToFlour > COOKIE_RATIO.liquidProblem) order.push({ id: 'liquid-red', key: 'liquidRed' });
-  else if (liquidToFlour > COOKIE_RATIO.liquidWarn) order.push({ id: 'liquid-yellow', key: 'liquidYellow' });
-
-  if (leavenerToFlour > COOKIE_RATIO.leavenerProblem) order.push({ id: 'leavener-red', key: 'leavenerRed' });
-  else if (leavenerToFlour > COOKIE_RATIO.leavenerWarn) order.push({ id: 'leavener-yellow', key: 'leavenerYellow' });
-
-  return order.map(({ id, key }) => {
-    const w = SENSEI[key];
-    return { id, level: w.level, title: w.title, message: w.message };
+function isLargestLeavenerContributor(
+  ri: RecipeIngredient,
+  ingredients: RecipeIngredient[],
+  db: typeof ingredientsDatabase
+): boolean {
+  const ing = db.find((i) => i.id === ri.ingredientId);
+  if (!ing || !countsTowardLeavenerFlourRatio(ing) || ri.amount <= 0) return false;
+  return !ingredients.some((other) => {
+    if (other.id === ri.id) return false;
+    const o = db.find((i) => i.id === other.ingredientId);
+    return !!o && countsTowardLeavenerFlourRatio(o) && other.amount > ri.amount;
   });
 }
 
 function computeWarnings(
   ingredients: RecipeIngredient[],
-  db: typeof ingredientsDatabase
+  db: typeof ingredientsDatabase,
+  cookieFamilyId: string
 ): Record<string, IngredientWarning> {
   const warnings: Record<string, IngredientWarning> = {};
+  const profile = ratioProfileForCookieFamily(cookieFamilyId);
+  const ratios = getRatioBands(profile);
   const totals = sumCategoryTotals(ingredients, db);
 
   const flour = totals['flour'] ?? 0;
@@ -285,35 +356,37 @@ function computeWarnings(
   const liquidToFlour = totalMoisture / flourDen;
   const leavenerToFlour = leavener / flourDen;
 
+  const skipFatSugarLiquid = profile === 'fried';
+
   for (const ri of ingredients) {
     const ing = db.find(i => i.id === ri.ingredientId);
     const cat = ing?.category ?? 'other';
 
-    if (cat === 'fat') {
-      if (fatToFlour > COOKIE_RATIO.fatProblem) warnings[ri.id] = { ...SENSEI.fatRed };
-      else if (fatToFlour > COOKIE_RATIO.fatWarn) warnings[ri.id] = { ...SENSEI.fatYellow };
+    if (!skipFatSugarLiquid && cat === 'fat' && isLargestFatContributor(ri, ingredients, db)) {
+      if (fatToFlour > ratios.fatProblem) warnings[ri.id] = { ...SENSEI.fatRed };
+      else if (fatToFlour > ratios.fatWarn) warnings[ri.id] = { ...SENSEI.fatYellow };
       else if (fatToFlour < 0.25 && flour > 100) warnings[ri.id] = { ...SENSEI.fatLow };
     }
 
-    if (cat === 'sugar' && isLargestSugarContributor(ri, ingredients, db)) {
-      if (sugarToFlour > COOKIE_RATIO.sugarProblem) warnings[ri.id] = { ...SENSEI.sugarRed };
-      else if (sugarToFlour > COOKIE_RATIO.sugarWarn) warnings[ri.id] = { ...SENSEI.sugarYellow };
+    if (!skipFatSugarLiquid && cat === 'sugar' && isLargestSugarContributor(ri, ingredients, db)) {
+      if (sugarToFlour > ratios.sugarProblem) warnings[ri.id] = { ...SENSEI.sugarRed };
+      else if (sugarToFlour > ratios.sugarWarn) warnings[ri.id] = { ...SENSEI.sugarYellow };
       else if (sugarToFlour < 0.2 && flour > 100) warnings[ri.id] = { ...SENSEI.sugarLow };
     }
 
-    if (cat === 'egg') {
-      if (eggToFlour > COOKIE_RATIO.eggProblem) warnings[ri.id] = { ...SENSEI.eggRed };
-      else if (eggToFlour > COOKIE_RATIO.eggWarn) warnings[ri.id] = { ...SENSEI.eggYellow };
+    if (cat === 'egg' && isLargestEggContributor(ri, ingredients, db)) {
+      if (eggToFlour > ratios.eggProblem) warnings[ri.id] = { ...SENSEI.eggRed };
+      else if (eggToFlour > ratios.eggWarn) warnings[ri.id] = { ...SENSEI.eggYellow };
     }
 
-    if (cat === 'liquid' || cat === 'dairy') {
-      if (liquidToFlour > COOKIE_RATIO.liquidProblem) warnings[ri.id] = { ...SENSEI.liquidRed };
-      else if (liquidToFlour > COOKIE_RATIO.liquidWarn) warnings[ri.id] = { ...SENSEI.liquidYellow };
+    if (!skipFatSugarLiquid && (cat === 'liquid' || cat === 'dairy') && isLargestMoistureContributor(ri, ingredients, db)) {
+      if (liquidToFlour > ratios.liquidProblem) warnings[ri.id] = { ...SENSEI.liquidRed };
+      else if (liquidToFlour > ratios.liquidWarn) warnings[ri.id] = { ...SENSEI.liquidYellow };
     }
 
-    if (cat === 'leavener' && countsTowardLeavenerFlourRatio(ing)) {
-      if (leavenerToFlour > COOKIE_RATIO.leavenerProblem) warnings[ri.id] = { ...SENSEI.leavenerRed };
-      else if (leavenerToFlour > COOKIE_RATIO.leavenerWarn) warnings[ri.id] = { ...SENSEI.leavenerYellow };
+    if (cat === 'leavener' && countsTowardLeavenerFlourRatio(ing) && isLargestLeavenerContributor(ri, ingredients, db)) {
+      if (leavenerToFlour > ratios.leavenerProblem) warnings[ri.id] = { ...SENSEI.leavenerRed };
+      else if (leavenerToFlour > ratios.leavenerWarn) warnings[ri.id] = { ...SENSEI.leavenerYellow };
     }
   }
 
@@ -465,6 +538,8 @@ interface IngredientSelectorProps {
   ingredients: RecipeIngredient[];
   onIngredientsChange: (ingredients: RecipeIngredient[]) => void;
   measurementMode: MeasurementMode;
+  /** Cookie type id from `cookieTypes` — selects ratio bands (bar / brownie / fried / etc.). */
+  cookieFamilyId: string;
 }
 
 // ── Add Modal ────────────────────────────────────────────────
@@ -681,9 +756,14 @@ interface RecipeSummary {
 
 function computeRecipeSummary(
   ingredients: RecipeIngredient[],
-  db: typeof ingredientsDatabase
+  db: typeof ingredientsDatabase,
+  cookieFamilyId: string
 ): RecipeSummary | null {
   if (ingredients.length === 0) return null;
+
+  const profile = ratioProfileForCookieFamily(cookieFamilyId);
+  const ratios = getRatioBands(profile);
+  const skipFatSugarLiquid = profile === 'fried';
 
   const totals: Record<string, number> = {};
   for (const ri of ingredients) {
@@ -704,6 +784,16 @@ function computeRecipeSummary(
   const structural = structuralFlourGrams(ingredients, db);
   const flourDen = Math.max(flour, 1);
   const flourForEgg = Math.max(structural || flour, 1);
+
+  if (flour === 0 && isFlourlessCookieFamily(cookieFamilyId)) {
+    return {
+      headline: '✅ No-bake or flourless style',
+      description:
+        'This cookie type sets from sugar, oats, nut butter, or egg foam—not from wheat flour. Flour-based ratio warnings for drop cookies do not apply here.',
+      tags: [{ label: 'No wheat flour', color: 'green' }],
+      severity: 'good',
+    };
+  }
 
   if (flour === 0) {
     return {
@@ -726,17 +816,17 @@ function computeRecipeSummary(
   const tags: { label: string; color: string }[] = [];
   let severity: 'good' | 'warning' | 'problem' = 'good';
 
-  // ── Diagnose each ratio (Infusion cookie-style bands) ──
-  const tooMuchSugar   = sugarRatio > COOKIE_RATIO.sugarWarn;
-  const wayTooMuchSugar = sugarRatio > COOKIE_RATIO.sugarProblem;
-  const tooManyEggs    = eggRatio > COOKIE_RATIO.eggWarn;
-  const tooMuchFat     = fatRatio > COOKIE_RATIO.fatWarn;
+  // ── Diagnose each ratio (family-specific bands) ──
+  const tooMuchSugar   = sugarRatio > ratios.sugarWarn;
+  const wayTooMuchSugar = sugarRatio > ratios.sugarProblem;
+  const tooManyEggs    = eggRatio > ratios.eggWarn;
+  const tooMuchFat     = fatRatio > ratios.fatWarn;
   const tooLittleFat   = fatRatio < 0.25 && flour > 100;
-  const tooMuchLiquid  = moistureRatio > COOKIE_RATIO.liquidWarn;
-  const wayTooMuchLiquid = moistureRatio > COOKIE_RATIO.liquidProblem;
-  const tooMuchLeavener = leavenerRatio > COOKIE_RATIO.leavenerWarn;
+  const tooMuchLiquid  = moistureRatio > ratios.liquidWarn;
+  const wayTooMuchLiquid = moistureRatio > ratios.liquidProblem;
+  const tooMuchLeavener = leavenerRatio > ratios.leavenerWarn;
 
-  if (wayTooMuchLiquid) {
+  if (!skipFatSugarLiquid && wayTooMuchLiquid) {
     return {
       headline: '💧 This will not bake into cookies',
       description: 'The liquid content is far too high relative to flour. This batter will not hold any shape — it will spread into a puddle or just make hot liquid. Dramatically reduce milk/liquid or add much more flour.',
@@ -745,7 +835,7 @@ function computeRecipeSummary(
     };
   }
 
-  if (wayTooMuchSugar && eggRatio > COOKIE_RATIO.eggWarn && fatRatio < COOKIE_RATIO.fatWarn) {
+  if (!skipFatSugarLiquid && wayTooMuchSugar && eggRatio > ratios.eggWarn && fatRatio < ratios.fatWarn) {
     return {
       headline: '🍬 Thin, crispy edges — puffy cakey center',
       description: 'These cookies will spread excessively due to high sugar and low flour, creating thin crispy edges with a soft, cakey center from the high egg ratio. Expect very sweet flavor and potential over-browning on the edges.',
@@ -760,19 +850,19 @@ function computeRecipeSummary(
   }
 
   // Build issues list
-  if (wayTooMuchSugar) { issues.push('sugar is very high — expect thin, sweet, fast-browning cookies'); tags.push({ label: 'Too much sugar', color: 'red' }); severity = 'problem'; }
-  else if (tooMuchSugar) { issues.push('sugar is elevated — cookies will spread more and brown faster'); tags.push({ label: 'High sugar', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
+  if (!skipFatSugarLiquid && wayTooMuchSugar) { issues.push('sugar is very high — expect thin, sweet, fast-browning cookies'); tags.push({ label: 'Too much sugar', color: 'red' }); severity = 'problem'; }
+  else if (!skipFatSugarLiquid && tooMuchSugar) { issues.push('sugar is elevated — cookies will spread more and brown faster'); tags.push({ label: 'High sugar', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
 
-  if (fatRatio > COOKIE_RATIO.fatProblem) { issues.push('butter is very high — cookies will be greasy and spread flat'); tags.push({ label: 'Too much fat', color: 'red' }); severity = 'problem'; }
-  else if (tooMuchFat) { issues.push('butter is elevated — expect significant spread, chill dough before baking'); tags.push({ label: 'High fat', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
-  else if (tooLittleFat) { issues.push('low butter for this flour — dough may be dry and stiff'); tags.push({ label: 'Low fat', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
+  if (!skipFatSugarLiquid && fatRatio > ratios.fatProblem) { issues.push('butter is very high — cookies will be greasy and spread flat'); tags.push({ label: 'Too much fat', color: 'red' }); severity = 'problem'; }
+  else if (!skipFatSugarLiquid && tooMuchFat) { issues.push('butter is elevated — expect significant spread, chill dough before baking'); tags.push({ label: 'High fat', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
+  else if (!skipFatSugarLiquid && tooLittleFat) { issues.push('low butter for this flour — dough may be dry and stiff'); tags.push({ label: 'Low fat', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
 
-  if (eggRatio > COOKIE_RATIO.eggProblem) { issues.push('too many eggs for this flour — cookies will be puffy and cakey'); tags.push({ label: 'Too many eggs', color: 'red' }); severity = 'problem'; }
+  if (eggRatio > ratios.eggProblem) { issues.push('too many eggs for this flour — cookies will be puffy and cakey'); tags.push({ label: 'Too many eggs', color: 'red' }); severity = 'problem'; }
   else if (tooManyEggs) { issues.push('high egg ratio — cookies will lean soft and cakey'); tags.push({ label: 'High eggs', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
 
-  if (tooMuchLiquid) { issues.push('liquid is high — dough will be very soft, needs chilling or more flour'); tags.push({ label: 'High moisture', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
+  if (!skipFatSugarLiquid && tooMuchLiquid) { issues.push('liquid is high — dough will be very soft, needs chilling or more flour'); tags.push({ label: 'High moisture', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
 
-  if (leavenerRatio > COOKIE_RATIO.leavenerProblem) { issues.push('leavener is very high — cookies may taste bitter or soapy'); tags.push({ label: 'Too much leavener', color: 'red' }); severity = 'problem'; }
+  if (leavenerRatio > ratios.leavenerProblem) { issues.push('leavener is very high — cookies may taste bitter or soapy'); tags.push({ label: 'Too much leavener', color: 'red' }); severity = 'problem'; }
   else if (tooMuchLeavener) { issues.push('leavener is slightly high — may cause excessive puffing'); tags.push({ label: 'High leavener', color: 'yellow' }); if (severity === 'good') severity = 'warning'; }
 
   // ── Positive descriptions when balanced ──
@@ -809,8 +899,8 @@ function computeRecipeSummary(
   return { headline, description, tags, severity };
 }
 
-function RecipeSummaryCard({ ingredients }: { ingredients: RecipeIngredient[] }) {
-  const summary = computeRecipeSummary(ingredients, ingredientsDatabase);
+function RecipeSummaryCard({ ingredients, cookieFamilyId }: { ingredients: RecipeIngredient[]; cookieFamilyId: string }) {
+  const summary = computeRecipeSummary(ingredients, ingredientsDatabase, cookieFamilyId);
   if (!summary) return null;
 
   const bgClass = summary.severity === 'good'
@@ -855,12 +945,11 @@ function RecipeSummaryCard({ ingredients }: { ingredients: RecipeIngredient[] })
 }
 
 // ── Main Component ────────────────────────────────────────────
-export function IngredientSelector({ ingredients, onIngredientsChange, measurementMode }: IngredientSelectorProps) {
+export function IngredientSelector({ ingredients, onIngredientsChange, measurementMode, cookieFamilyId }: IngredientSelectorProps) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showCustomDialog, setShowCustomDialog] = useState(false);
 
-  const warnings = computeWarnings(ingredients, ingredientsDatabase);
-  const formulaAlerts = computeFormulaAlerts(ingredients, ingredientsDatabase);
+  const warnings = computeWarnings(ingredients, ingredientsDatabase, cookieFamilyId);
 
   const addIngredient = (ingredientId: string) => {
     const ingredient = ingredientsDatabase.find(i => i.id === ingredientId);
@@ -876,24 +965,6 @@ export function IngredientSelector({ ingredients, onIngredientsChange, measureme
 
   return (
     <div className="space-y-3">
-      {formulaAlerts.length > 0 && (
-        <div className="space-y-2" role="region" aria-label="Recipe warnings">
-          {formulaAlerts.map((alert) => (
-            <Alert
-              key={alert.id}
-              variant={alert.level === 'red' ? 'destructive' : 'warning'}
-              className={cn(
-                alert.level === 'red' && 'border-red-200 bg-red-50 text-red-900 [&_[data-slot=alert-description]]:text-red-800/90',
-              )}
-            >
-              <AlertCircle className="size-4" aria-hidden />
-              <AlertTitle>{alert.title}</AlertTitle>
-              <AlertDescription>{alert.message}</AlertDescription>
-            </Alert>
-          ))}
-        </div>
-      )}
-
       {ingredients.length > 0 ? (
         <div>
           {ingredients.map(recipeIng => (
@@ -915,7 +986,7 @@ export function IngredientSelector({ ingredients, onIngredientsChange, measureme
         </div>
       )}
 
-      <RecipeSummaryCard ingredients={ingredients} />
+      <RecipeSummaryCard ingredients={ingredients} cookieFamilyId={cookieFamilyId} />
 
       <div className="flex gap-2 pt-1">
         <button onClick={() => setShowAddModal(true)}

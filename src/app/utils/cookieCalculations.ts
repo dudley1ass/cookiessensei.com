@@ -1,8 +1,16 @@
 import { Ingredient, RecipeIngredient, CookieMetrics } from '../types/cookie';
 import { ingredientsDatabase } from '../data/ingredients';
 
+/** Styles that intentionally omit chemical leavener (shortbread, spritz, biscotti). */
+const MINIMAL_LEAVENING_COOKIE_FAMILIES = new Set([
+  'shortbread',
+  'pressed-butter',
+  'biscotti',
+]);
+
 export function calculateCookieMetrics(
-  recipeIngredients: RecipeIngredient[]
+  recipeIngredients: RecipeIngredient[],
+  cookieFamilyId?: string
 ): CookieMetrics {
   let totalWeight = 0;
   let totalCalories = 0;
@@ -157,7 +165,11 @@ export function calculateCookieMetrics(
       leaveningWarnings.push('🧪 Baking powder is on the high side. Cookies may taste metallic if not balanced.');
     }
 
-    if (leavenerWeight < 0.5 && totalFlourWeight > 200) {
+    if (
+      leavenerWeight < 0.5 &&
+      totalFlourWeight > 200 &&
+      !MINIMAL_LEAVENING_COOKIE_FAMILIES.has(cookieFamilyId ?? '')
+    ) {
       leaveningWarnings.push('⬇️ Very low leavening for this flour load. Expect denser cookies unless that is intentional.');
     }
   }

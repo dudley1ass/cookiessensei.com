@@ -115,13 +115,6 @@ export default function App() {
   };
 
   const handleBackToSelection = () => {
-    if (selectedCookieType && selectedRecipeName) {
-      setSelectedRecipeName(null);
-      setIngredients(createIngredientsFromFormula(selectedCookieType.baseFormula));
-      setToppings([]);
-      return;
-    }
-
     setSelectedCookieType(null);
     setIngredients([]);
     setSelectedRecipeName(null);
@@ -163,7 +156,7 @@ export default function App() {
     return <CookieTypeSelector cookieTypes={cookieTypes} onSelectType={handleSelectCookieType} />;
   }
 
-  const metrics = calculateCookieMetrics(ingredients);
+  const metrics = calculateCookieMetrics(ingredients, selectedCookieType.id);
   const servingsPerRecipe = metrics.totalWeight > 0 ? Math.floor(metrics.totalWeight / servingSize) : 0;
   const availableRecipes = getRecipesForCookieType(selectedCookieType.id);
 
@@ -337,7 +330,12 @@ export default function App() {
                 </div>
               )}
 
-              <IngredientSelector ingredients={ingredients} onIngredientsChange={setIngredients} measurementMode={measurementMode} />
+              <IngredientSelector
+                ingredients={ingredients}
+                onIngredientsChange={setIngredients}
+                measurementMode={measurementMode}
+                cookieFamilyId={selectedCookieType.id}
+              />
             </div>
 
             {/* Toppings card */}
