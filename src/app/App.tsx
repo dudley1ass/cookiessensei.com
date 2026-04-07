@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import { RecipeIngredient, UnitType } from './types/cookie';
 import { cookieTypes, CookieType } from './types/cookieTypes';
@@ -85,20 +85,43 @@ export default function App() {
   const [showToppingModal, setShowToppingModal] = useState(false);
   const [toppingCat, setToppingCat] = useState('all');
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+  };
+
+  const createIngredientsFromFormula = (baseFormula: CookieType['baseFormula']) => {
+    const defaultUnit = UNIT_OPTIONS[measurementMode][0];
+    return baseFormula.map((ing, index) => {
+      const ingredientData = ingredientsDatabase.find(i => i.id === ing.ingredientId);
+      const isEgg = ingredientData?.category === 'egg';
+      return {
+        ...ing,
+        id: `${Date.now()}-${index}`,
+        displayUnit: defaultUnit,
+        eggSize: isEgg ? ('medium' as const) : undefined,
+      };
+    });
+  };
+
+  useEffect(() => {
+    scrollToTop();
+  }, [selectedCookieType, selectedRecipeName, activeTab]);
+
   const handleSelectCookieType = (cookieType: CookieType) => {
     setSelectedCookieType(cookieType);
     setSelectedRecipeName(null);
-    const defaultUnit = UNIT_OPTIONS[measurementMode][0];
-    const ingredientsWithIds = cookieType.baseFormula.map((ing, index) => {
-      const ingredientData = ingredientsDatabase.find(i => i.id === ing.ingredientId);
-      const isEgg = ingredientData?.category === 'egg';
-      return { ...ing, id: `${Date.now()}-${index}`, displayUnit: defaultUnit, eggSize: isEgg ? ('medium' as const) : undefined };
-    });
-    setIngredients(ingredientsWithIds);
+    setIngredients(createIngredientsFromFormula(cookieType.baseFormula));
     setToppings([]);
   };
 
   const handleBackToSelection = () => {
+    if (selectedCookieType && selectedRecipeName) {
+      setSelectedRecipeName(null);
+      setIngredients(createIngredientsFromFormula(selectedCookieType.baseFormula));
+      setToppings([]);
+      return;
+    }
+
     setSelectedCookieType(null);
     setIngredients([]);
     setSelectedRecipeName(null);
@@ -194,15 +217,20 @@ export default function App() {
   const filteredToppings = toppingCat === 'all' ? TOPPINGS : TOPPINGS.filter(t => t.category === toppingCat);
   const addedToppingIds = new Set(toppings.map(t => t.toppingId));
 
+  const formatWeightByMode = (grams: number) => {
+    if (measurementMode === 'imperial') {
+      if (grams >= 453.592) return `${(grams / 453.592).toFixed(2)} lb`;
+      return `${(grams / 28.3495).toFixed(2)} oz`;
+    }
+    if (measurementMode === 'volumetric') return `${(grams / 236.588).toFixed(2)} cups`;
+    return `${grams.toFixed(0)} g`;
+  };
+
   const formattedIngredients = ingredients.map(ing => {
     const dbIng = ingredientsDatabase.find(i => i.id === ing.ingredientId);
     return {
       name: dbIng?.name ?? ing.ingredientId,
-      amount: measurementMode === 'imperial'
-        ? `${(ing.amount * 0.035274).toFixed(2)} oz`
-        : measurementMode === 'volumetric'
-        ? `${(ing.amount / 236.588).toFixed(2)} cups`
-        : `${ing.amount.toFixed(0)} g`,
+      amount: formatWeightByMode(ing.amount),
     };
   });
 
@@ -387,12 +415,24 @@ export default function App() {
                       <h3 className="font-bold text-gray-900 mb-3">📊 Quick Stats</h3>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between"><span className="text-gray-600">Ingredients:</span><span className="font-semibold">{ingredients.length}</span></div>
-                        <div className="flex justify-between"><span className="text-gray-600">Total Weight:</span><span className="font-semibold">{Math.round(totalWeight)}g</span></div>
+                        <div className="flex justify-between"><span className="text-gray-600">Total Weight:</span><span className="font-semibold">{formatWeightByMode(totalWeight)}</span></div>
                         <div className="flex justify-between"><span className="text-gray-600">Servings:</span><span className="font-semibold">{totalServings} cookies</span></div>
                         <div className="flex justify-between"><span className="text-gray-600">Per Cookie:</span><span className="font-semibold">{((metricsWithToppings.calories * servingSize) / 100).toFixed(0)} cal</span></div>
                         {toppings.length > 0 && <div className="flex justify-between"><span className="text-gray-600">Toppings Added:</span><span className="font-semibold">{toppings.length}</span></div>}
                       </div>
                     </div>
+                    {metricsWithToppings.leaveningWarnings.length > 0 && (
+                      <div className="border-t border-gray-100 pt-4">
+                        <h3 className="font-bold text-gray-900 mb-2">⚗️ Leavening Warnings</h3>
+                        <div className="space-y-2">
+                          {metricsWithToppings.leaveningWarnings.map((warning, idx) => (
+                            <div key={idx} className="text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                              {warning}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div className="border-t border-gray-100 pt-4">
                       <MetricsDisplay metrics={metricsWithToppings} measurementMode={measurementMode} />
                     </div>

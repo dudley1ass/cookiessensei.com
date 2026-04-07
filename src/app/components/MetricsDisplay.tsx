@@ -21,9 +21,10 @@ export function MetricsDisplay({ metrics, measurementMode }: MetricsDisplayProps
 
   const formatWeight = (grams: number) => {
     if (measurementMode === 'metric') {
-      return `${grams.toFixed(0)}g`;
+      return `${grams.toFixed(0)} g`;
     } else if (measurementMode === 'imperial') {
-      return `${(grams * 0.035274).toFixed(2)}oz`;
+      if (grams >= 453.592) return `${(grams / 453.592).toFixed(2)} lb`;
+      return `${(grams / 28.3495).toFixed(2)} oz`;
     } else {
       // volumetric - approximate for total weight
       return `${(grams / 236.588).toFixed(2)} cups`;

@@ -76,4 +76,5 @@ export interface CookieMetrics {
   // Additional metrics
   netCarbs: number; // carbs - fiber
   moisturePercent: number; // water content %
+  leaveningWarnings: string[];
 }

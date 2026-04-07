@@ -29,6 +29,11 @@ export function calculateCookieMetrics(
   let weightedSucroseEquivalence = 0;
   let sugarWeightForSE = 0;
   let totalActualSugar = 0;
+  let leavenerWeight = 0;
+  let bakingSodaWeight = 0;
+  let bakingPowderWeight = 0;
+  let creamTartarWeight = 0;
+  let acidicSupportWeight = 0;
 
   recipeIngredients.forEach((recipeIng) => {
     const ingredient = ingredientsDatabase.find(
@@ -82,6 +87,28 @@ export function calculateCookieMetrics(
       totalFlourWeight += weight;
     }
 
+    if (ingredient.category === 'leavener') {
+      leavenerWeight += weight;
+      const leavenerName = ingredient.name.toLowerCase();
+      if (leavenerName.includes('baking soda')) bakingSodaWeight += weight;
+      if (leavenerName.includes('baking powder')) bakingPowderWeight += weight;
+      if (leavenerName.includes('cream of tartar') || leavenerName.includes('cream tartar')) {
+        creamTartarWeight += weight;
+      }
+    }
+
+    // Approximate acid support for soda-driven doughs.
+    const acidName = ingredient.name.toLowerCase();
+    if (
+      acidName.includes('molasses') ||
+      acidName.includes('brown sugar') ||
+      acidName.includes('honey') ||
+      acidName.includes('cocoa') ||
+      acidName.includes('cream cheese')
+    ) {
+      acidicSupportWeight += weight;
+    }
+
     // Water activity weighted average
     if (ingredient.waterActivity !== undefined) {
       weightedWaterActivity += ingredient.waterActivity * weight;
@@ -111,6 +138,40 @@ export function calculateCookieMetrics(
 
   // Calculate sugar content percentage (actual sugar from nutritional data)
   const sugarContentPercent = totalWeight > 0 ? (totalActualSugar / totalWeight) * 100 : 0;
+
+  const leaveningWarnings: string[] = [];
+  if (totalFlourWeight >= 80) {
+    const leavenerPer100Flour = (leavenerWeight / totalFlourWeight) * 100;
+    const bakingPowderPer100Flour = (bakingPowderWeight / totalFlourWeight) * 100;
+    const bakingSodaPer100Flour = (bakingSodaWeight / totalFlourWeight) * 100;
+
+    if (leavenerPer100Flour > 5.5) {
+      leaveningWarnings.push('⚗️ Leavening is high for the flour amount. Cookies may puff, crack, then collapse with a harsh aftertaste.');
+    } else if (leavenerPer100Flour > 4.5) {
+      leaveningWarnings.push('⚗️ Leavening runs a little hot. Expect faster rise and more spread unless dough is chilled.');
+    }
+
+    if (bakingSodaPer100Flour > 2.0) {
+      leaveningWarnings.push('🧪 Baking soda is very high relative to flour. Risk of soapy/bitter flavor and excess browning.');
+    } else if (bakingPowderPer100Flour > 4.5) {
+      leaveningWarnings.push('🧪 Baking powder is on the high side. Cookies may taste metallic if not balanced.');
+    }
+
+    if (leavenerWeight < 0.5 && totalFlourWeight > 200) {
+      leaveningWarnings.push('⬇️ Very low leavening for this flour load. Expect denser cookies unless that is intentional.');
+    }
+  }
+
+  if (bakingSodaWeight > 0 && acidicSupportWeight + creamTartarWeight < bakingSodaWeight * 10) {
+    leaveningWarnings.push('⚖️ Baking soda appears under-supported by acid. Consider adding acid (brown sugar/molasses/cocoa/cream of tartar) or replacing part with baking powder.');
+  }
+
+  if (creamTartarWeight > 0 && bakingSodaWeight > 0) {
+    const tartarToSoda = creamTartarWeight / Math.max(0.1, bakingSodaWeight);
+    if (tartarToSoda < 1.1 || tartarToSoda > 2.8) {
+      leaveningWarnings.push('⚖️ Cream of tartar to baking soda ratio looks off. A ~1.5-2.5:1 range is usually more stable.');
+    }
+  }
 
   // Estimate texture force based on water activity and fat content
   const baseForce = 150;
@@ -162,6 +223,7 @@ export function calculateCookieMetrics(
     totalActualSugar,
     netCarbs: Math.max(0, calculatedCarbs - calculatedFiber),
     moisturePercent: Math.min(100, waterPercent),
+    leaveningWarnings,
   };
 }
 
