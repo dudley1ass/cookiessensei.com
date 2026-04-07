@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ChefHat, Sparkles } from 'lucide-react';
+import { ChefHat, Sparkles, BookOpen } from 'lucide-react';
 import { CookieType } from '../types/cookieTypes';
 import { IngredientMatcher } from './IngredientMatcher';
 import { CookieHeroBanner } from './CookieHeroBanner';
@@ -27,7 +27,7 @@ export function CookieTypeSelector({ cookieTypes, onSelectType }: CookieTypeSele
         <div className="max-w-6xl mx-auto">
 
           {/* Section header */}
-          <div ref={gridRef} className="flex items-center justify-between mb-6">
+          <div ref={gridRef} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="flex items-center justify-center size-9 rounded-full bg-red-600 text-white">
                 <ChefHat className="size-5" />
@@ -39,6 +39,14 @@ export function CookieTypeSelector({ cookieTypes, onSelectType }: CookieTypeSele
                 <p className="text-sm text-gray-500">Select a type to load its science-based formula</p>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={() => { window.location.hash = '#/'; }}
+              className="self-start sm:self-center inline-flex items-center gap-1.5 text-sm font-medium text-red-700 hover:text-red-900 underline-offset-2 hover:underline"
+            >
+              <BookOpen className="size-4" />
+              Introduction
+            </button>
             <button
               onClick={() => setShowMatcher(true)}
               className="hidden sm:flex items-center gap-2 text-white font-medium px-4 py-2 rounded-xl transition-all text-sm hover:scale-105 active:scale-95"

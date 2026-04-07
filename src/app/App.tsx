@@ -3,6 +3,7 @@ import { ArrowLeft, Plus, X } from 'lucide-react';
 import { RecipeIngredient, UnitType } from './types/cookie';
 import { cookieTypes, CookieType } from './types/cookieTypes';
 import { calculateCookieMetrics } from './utils/cookieCalculations';
+import { CookieAppLanding } from './components/CookieAppLanding';
 import { CookieTypeSelector } from './components/CookieTypeSelector';
 import { IngredientSelector } from './components/IngredientSelector';
 import { MetricsDisplay } from './components/MetricsDisplay';
@@ -74,13 +75,17 @@ interface SelectedTopping {
   amountG: number;
 }
 
-function parseCookieHash(): { kind: 'selector' } | { kind: 'recipe'; id: string } {
+function parseCookieHash():
+  | { kind: 'landing' }
+  | { kind: 'browse' }
+  | { kind: 'recipe'; id: string } {
   const raw = window.location.hash.replace(/^#/, '').trim();
   const path = raw.startsWith('/') ? raw : `/${raw}`;
-  if (path === '/' || path === '') return { kind: 'selector' };
+  if (path === '/' || path === '') return { kind: 'landing' };
+  if (path === '/browse' || path === '/types' || path === '/pick') return { kind: 'browse' };
   const m = path.match(/^\/cookie\/([^/?#]+)\/?$/);
   if (m) return { kind: 'recipe', id: decodeURIComponent(m[1]) };
-  return { kind: 'selector' };
+  return { kind: 'browse' };
 }
 
 export default function App() {
@@ -97,6 +102,8 @@ export default function App() {
   const measurementModeRef = useRef(measurementMode);
   measurementModeRef.current = measurementMode;
   const lastSyncedRecipeIdRef = useRef<string | null>(null);
+  /** When no recipe is open: intro screen vs cookie-type grid. */
+  const [listSurface, setListSurface] = useState<'landing' | 'browse'>('landing');
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -127,8 +134,18 @@ export default function App() {
 
     const syncFromLocation = () => {
       const route = parseCookieHash();
-      if (route.kind === 'selector') {
+      if (route.kind === 'landing') {
         lastSyncedRecipeIdRef.current = null;
+        setListSurface('landing');
+        setSelectedCookieType(null);
+        setIngredients([]);
+        setSelectedRecipeName(null);
+        setToppings([]);
+        return;
+      }
+      if (route.kind === 'browse') {
+        lastSyncedRecipeIdRef.current = null;
+        setListSurface('browse');
         setSelectedCookieType(null);
         setIngredients([]);
         setSelectedRecipeName(null);
@@ -140,9 +157,10 @@ export default function App() {
         window.history.replaceState(
           null,
           '',
-          `${window.location.pathname}${window.location.search}#/`
+          `${window.location.pathname}${window.location.search}#/browse`
         );
         lastSyncedRecipeIdRef.current = null;
+        setListSurface('browse');
         setSelectedCookieType(null);
         setIngredients([]);
         setSelectedRecipeName(null);
@@ -205,8 +223,8 @@ export default function App() {
     setIngredients([]);
     setSelectedRecipeName(null);
     setToppings([]);
-    if (window.location.hash !== '#' && window.location.hash !== '#/') {
-      window.location.hash = '#/';
+    if (window.location.hash !== '#/browse') {
+      window.location.hash = '#/browse';
     }
   };
 
@@ -242,6 +260,9 @@ export default function App() {
     setToppings(prev => prev.map(t => t.id === id ? { ...t, amountG: amount } : t));
 
   if (!selectedCookieType) {
+    if (listSurface === 'landing') {
+      return <CookieAppLanding />;
+    }
     return <CookieTypeSelector cookieTypes={cookieTypes} onSelectType={handleSelectCookieType} />;
   }
 
