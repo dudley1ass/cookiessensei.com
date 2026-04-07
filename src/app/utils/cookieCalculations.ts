@@ -6,6 +6,7 @@ const MINIMAL_LEAVENING_COOKIE_FAMILIES = new Set([
   'shortbread',
   'pressed-butter',
   'biscotti',
+  'molded',
 ]);
 
 export function calculateCookieMetrics(

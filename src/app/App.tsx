@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import { RecipeIngredient, UnitType } from './types/cookie';
 import { cookieTypes, CookieType } from './types/cookieTypes';
@@ -185,13 +185,17 @@ export default function App() {
     setToppings([]);
   };
 
-  const handleBackToSelection = () => {
+  const handleBackToSelection = (e?: MouseEvent<HTMLButtonElement>) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     lastSyncedRecipeIdRef.current = null;
-    window.history.replaceState(null, '', '#/');
     setSelectedCookieType(null);
     setIngredients([]);
     setSelectedRecipeName(null);
     setToppings([]);
+    // Full URL keeps path/query stable and avoids hosts where a bare `#/` mishandles the history entry.
+    const backUrl = `${window.location.origin}${window.location.pathname}${window.location.search}#/`;
+    window.history.replaceState(null, '', backUrl);
   };
 
   const handleMeasurementModeChange = (mode: MeasurementMode) => {
@@ -308,7 +312,12 @@ export default function App() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-3">
-              <button onClick={handleBackToSelection} className="text-white/80 hover:text-white transition-colors">
+              <button
+                type="button"
+                onClick={handleBackToSelection}
+                className="text-white/80 hover:text-white transition-colors"
+                aria-label="Back to cookie type selection"
+              >
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <span className="text-2xl">🍪</span>

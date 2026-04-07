@@ -60,9 +60,12 @@ type RatioProfile = 'standard' | 'brownie' | 'bar' | 'fried' | 'no-bake' | 'high
 export function ratioProfileForCookieFamily(id: string): RatioProfile {
   switch (id) {
     case 'brownie-cookie':
-      return 'brownie';
     case 'bar-cookie':
-      return 'bar';
+      // Pan bars / brownies use very little flour on purpose — same bands as brownie cookies.
+      return 'brownie';
+    case 'molded':
+      // Pecan sandies, snowballs, etc. — high butter vs flour is normal.
+      return 'high-butter';
     case 'fried-cookie':
       return 'fried';
     case 'no-bake':
@@ -81,14 +84,16 @@ export function getRatioBands(profile: RatioProfile): RatioBands {
   const b: RatioBands = { ...COOKIE_RATIO_STANDARD };
   switch (profile) {
     case 'brownie':
-      b.fatProblem = 1.8;
-      b.fatWarn = 1.4;
+      // Typical brownie / bar batters are rich in fat & sugar vs flour — allow fudgy ratios.
+      b.fatProblem = 2.05;
+      b.fatWarn = 1.85;
       b.sugarProblem = 5.0;
       b.sugarWarn = 3.9;
-      b.eggProblem = 3.0;
-      b.eggWarn = 2.6;
+      b.eggProblem = 3.2;
+      b.eggWarn = 2.85;
       return b;
     case 'bar':
+      // Kept for explicit `'bar'` profile if used later; `bar-cookie` family uses `brownie` profile.
       b.fatProblem = 1.8;
       b.fatWarn = 1.4;
       b.sugarProblem = 2.5;
@@ -357,6 +362,10 @@ function computeWarnings(
   const leavenerToFlour = leavener / flourDen;
 
   const skipFatSugarLiquid = profile === 'fried';
+  /** Twice-baked / meringue styles where low fat is intentional. */
+  const skipFatLowWarning =
+    cookieFamilyId === 'biscotti' ||
+    cookieFamilyId === 'macaron-meringue';
 
   for (const ri of ingredients) {
     const ing = db.find(i => i.id === ri.ingredientId);
@@ -365,7 +374,7 @@ function computeWarnings(
     if (!skipFatSugarLiquid && cat === 'fat' && isLargestFatContributor(ri, ingredients, db)) {
       if (fatToFlour > ratios.fatProblem) warnings[ri.id] = { ...SENSEI.fatRed };
       else if (fatToFlour > ratios.fatWarn) warnings[ri.id] = { ...SENSEI.fatYellow };
-      else if (fatToFlour < 0.25 && flour > 100) warnings[ri.id] = { ...SENSEI.fatLow };
+      else if (!skipFatLowWarning && fatToFlour < 0.25 && flour > 100) warnings[ri.id] = { ...SENSEI.fatLow };
     }
 
     if (!skipFatSugarLiquid && cat === 'sugar' && isLargestSugarContributor(ri, ingredients, db)) {
