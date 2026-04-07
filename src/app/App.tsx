@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import { RecipeIngredient, UnitType } from './types/cookie';
 import { cookieTypes, CookieType } from './types/cookieTypes';
 import { calculateCookieMetrics } from './utils/cookieCalculations';
-import { CookieAppLanding } from './components/CookieAppLanding';
 import { CookieTypeSelector } from './components/CookieTypeSelector';
 import { IngredientSelector } from './components/IngredientSelector';
 import { MetricsDisplay } from './components/MetricsDisplay';
@@ -75,17 +74,15 @@ interface SelectedTopping {
   amountG: number;
 }
 
-function parseCookieHash():
-  | { kind: 'landing' }
-  | { kind: 'browse' }
-  | { kind: 'recipe'; id: string } {
+function parseCookieHash(): { kind: 'selector' } | { kind: 'recipe'; id: string } {
   const raw = window.location.hash.replace(/^#/, '').trim();
   const path = raw.startsWith('/') ? raw : `/${raw}`;
-  if (path === '/' || path === '') return { kind: 'landing' };
-  if (path === '/browse' || path === '/types' || path === '/pick') return { kind: 'browse' };
+  if (path === '/' || path === '' || path === '/browse' || path === '/types' || path === '/pick') {
+    return { kind: 'selector' };
+  }
   const m = path.match(/^\/cookie\/([^/?#]+)\/?$/);
   if (m) return { kind: 'recipe', id: decodeURIComponent(m[1]) };
-  return { kind: 'browse' };
+  return { kind: 'selector' };
 }
 
 export default function App() {
@@ -102,8 +99,9 @@ export default function App() {
   const measurementModeRef = useRef(measurementMode);
   measurementModeRef.current = measurementMode;
   const lastSyncedRecipeIdRef = useRef<string | null>(null);
-  /** When no recipe is open: intro screen vs cookie-type grid. */
-  const [listSurface, setListSurface] = useState<'landing' | 'browse'>('landing');
+  /** After in-app back from a recipe: scroll home so the cookie-type grid is in view (below hero). */
+  const [scrollHomeToCookieGrid, setScrollHomeToCookieGrid] = useState(false);
+  const consumeCookieGridScroll = useCallback(() => setScrollHomeToCookieGrid(false), []);
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -134,18 +132,8 @@ export default function App() {
 
     const syncFromLocation = () => {
       const route = parseCookieHash();
-      if (route.kind === 'landing') {
+      if (route.kind === 'selector') {
         lastSyncedRecipeIdRef.current = null;
-        setListSurface('landing');
-        setSelectedCookieType(null);
-        setIngredients([]);
-        setSelectedRecipeName(null);
-        setToppings([]);
-        return;
-      }
-      if (route.kind === 'browse') {
-        lastSyncedRecipeIdRef.current = null;
-        setListSurface('browse');
         setSelectedCookieType(null);
         setIngredients([]);
         setSelectedRecipeName(null);
@@ -157,10 +145,9 @@ export default function App() {
         window.history.replaceState(
           null,
           '',
-          `${window.location.pathname}${window.location.search}#/browse`
+          `${window.location.pathname}${window.location.search}#/`
         );
         lastSyncedRecipeIdRef.current = null;
-        setListSurface('browse');
         setSelectedCookieType(null);
         setIngredients([]);
         setSelectedRecipeName(null);
@@ -199,6 +186,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (selectedCookieType == null) return;
     scrollToTop();
   }, [selectedCookieType, selectedRecipeName, activeTab]);
 
@@ -223,8 +211,9 @@ export default function App() {
     setIngredients([]);
     setSelectedRecipeName(null);
     setToppings([]);
-    if (window.location.hash !== '#/browse') {
-      window.location.hash = '#/browse';
+    setScrollHomeToCookieGrid(true);
+    if (window.location.hash !== '#' && window.location.hash !== '#/') {
+      window.location.hash = '#/';
     }
   };
 
@@ -260,10 +249,14 @@ export default function App() {
     setToppings(prev => prev.map(t => t.id === id ? { ...t, amountG: amount } : t));
 
   if (!selectedCookieType) {
-    if (listSurface === 'landing') {
-      return <CookieAppLanding />;
-    }
-    return <CookieTypeSelector cookieTypes={cookieTypes} onSelectType={handleSelectCookieType} />;
+    return (
+      <CookieTypeSelector
+        cookieTypes={cookieTypes}
+        onSelectType={handleSelectCookieType}
+        scrollCookieGridIntoView={scrollHomeToCookieGrid}
+        onCookieGridScrollConsumed={consumeCookieGridScroll}
+      />
+    );
   }
 
   const metrics = calculateCookieMetrics(ingredients, selectedCookieType.id);
