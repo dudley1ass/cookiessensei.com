@@ -16,6 +16,9 @@ import { recipePresets, getRecipesForCookieType } from './data/recipePresets';
 type MeasurementMode = 'metric' | 'imperial' | 'volumetric';
 type ActiveTab = 'science' | 'nutrition' | 'baking';
 
+/** Must match `link rel="canonical"` in `index.html` origin (for dynamic updates per route). */
+const PUBLIC_SITE_ORIGIN = 'https://cookiesensei.senseifood.com';
+
 const UNIT_OPTIONS: Record<MeasurementMode, UnitType[]> = {
   metric: ['g', 'kg', 'mg'],
   imperial: ['oz', 'lb'],
@@ -68,21 +71,44 @@ const TOPPINGS: Topping[] = [
 
 const TOPPING_CATEGORIES = ['Chocolate', 'Icing', 'Sprinkles', 'Nuts', 'Extras'];
 
+/** Path for Vite `base` when app is not hosted at domain root */
+function joinBase(rel: string): string {
+  const b = import.meta.env.BASE_URL;
+  if (!b || b === '/') {
+    return rel.startsWith('/') ? rel : `/${rel}`;
+  }
+  const base = b.endsWith('/') ? b.slice(0, -1) : b;
+  const r = rel.startsWith('/') ? rel : `/${rel}`;
+  return `${base}${r}` || '/';
+}
+
+function stripAppPath(pathname: string): string {
+  const b = import.meta.env.BASE_URL;
+  if (!b || b === '/') return pathname || '/';
+  const base = b.endsWith('/') ? b.slice(0, -1) : b;
+  if (pathname === base || pathname === `${base}/`) return '/';
+  if (pathname.startsWith(`${base}/`)) {
+    return pathname.slice(base.length) || '/';
+  }
+  return pathname || '/';
+}
+
+function migrateLegacyHashToPath() {
+  const hash = window.location.hash;
+  if (!hash || hash === '#' || hash === '#/') return;
+  const raw = hash.replace(/^#/, '').trim();
+  const pathPart = raw.startsWith('/') ? raw : `/${raw}`;
+  const m = pathPart.match(/^\/cookie\/([^/?#]+)\/?$/);
+  const target = m
+    ? joinBase(`/cookie/${encodeURIComponent(decodeURIComponent(m[1]))}`)
+    : joinBase('/');
+  window.history.replaceState(null, '', target);
+}
+
 interface SelectedTopping {
   id: string;
   toppingId: string;
   amountG: number;
-}
-
-function parseCookieHash(): { kind: 'selector' } | { kind: 'recipe'; id: string } {
-  const raw = window.location.hash.replace(/^#/, '').trim();
-  const path = raw.startsWith('/') ? raw : `/${raw}`;
-  if (path === '/' || path === '' || path === '/browse' || path === '/types' || path === '/pick') {
-    return { kind: 'selector' };
-  }
-  const m = path.match(/^\/cookie\/([^/?#]+)\/?$/);
-  if (m) return { kind: 'recipe', id: decodeURIComponent(m[1]) };
-  return { kind: 'selector' };
 }
 
 export default function App() {
@@ -107,46 +133,17 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
-  const createIngredientsFromFormula = (baseFormula: CookieType['baseFormula'], mode: MeasurementMode = measurementMode) => {
-    const defaultUnit = UNIT_OPTIONS[mode][0];
-    return baseFormula.map((ing, index) => {
-      const ingredientData = ingredientsDatabase.find(i => i.id === ing.ingredientId);
-      const isEgg = ingredientData?.category === 'egg';
-      return {
-        ...ing,
-        id: `${Date.now()}-${index}`,
-        displayUnit: defaultUnit,
-        eggSize: isEgg ? ('medium' as const) : undefined,
-      };
-    });
-  };
+  /** Sync UI from `window.location` (paths like `/cookie/drop-cookie`, not `/#/…`). */
+  const applyRoute = useCallback(() => {
+    const rest =
+      stripAppPath(window.location.pathname).replace(/\/+$/, '') || '/';
+    const m = rest.match(/^\/cookie\/([^/]+)\/?$/);
 
-  useEffect(() => {
-    if (!window.location.hash || window.location.hash === '#' || window.location.hash === '') {
-      window.history.replaceState(
-        null,
-        '',
-        `${window.location.pathname}${window.location.search}#/`
-      );
-    }
-
-    const syncFromLocation = () => {
-      const route = parseCookieHash();
-      if (route.kind === 'selector') {
-        lastSyncedRecipeIdRef.current = null;
-        setSelectedCookieType(null);
-        setIngredients([]);
-        setSelectedRecipeName(null);
-        setToppings([]);
-        return;
-      }
-      const ct = cookieTypes.find(c => c.id === route.id);
+    if (m) {
+      const id = decodeURIComponent(m[1]);
+      const ct = cookieTypes.find(c => c.id === id);
       if (!ct) {
-        window.history.replaceState(
-          null,
-          '',
-          `${window.location.pathname}${window.location.search}#/`
-        );
+        window.history.replaceState(null, '', joinBase('/'));
         lastSyncedRecipeIdRef.current = null;
         setSelectedCookieType(null);
         setIngredients([]);
@@ -155,8 +152,8 @@ export default function App() {
         return;
       }
       setSelectedCookieType(ct);
-      if (lastSyncedRecipeIdRef.current !== route.id) {
-        lastSyncedRecipeIdRef.current = route.id;
+      if (lastSyncedRecipeIdRef.current !== id) {
+        lastSyncedRecipeIdRef.current = id;
         const mode = measurementModeRef.current;
         const defaultUnit = UNIT_OPTIONS[mode][0];
         setIngredients(
@@ -174,47 +171,60 @@ export default function App() {
         setSelectedRecipeName(null);
         setToppings([]);
       }
-    };
+      return;
+    }
 
-    syncFromLocation();
-    window.addEventListener('hashchange', syncFromLocation);
-    window.addEventListener('popstate', syncFromLocation);
-    return () => {
-      window.removeEventListener('hashchange', syncFromLocation);
-      window.removeEventListener('popstate', syncFromLocation);
-    };
+    if (rest !== '/') {
+      window.history.replaceState(null, '', joinBase('/'));
+    }
+    lastSyncedRecipeIdRef.current = null;
+    setSelectedCookieType(null);
+    setIngredients([]);
+    setSelectedRecipeName(null);
+    setToppings([]);
   }, []);
+
+  useEffect(() => {
+    migrateLegacyHashToPath();
+    applyRoute();
+    window.addEventListener('popstate', applyRoute);
+    return () => window.removeEventListener('popstate', applyRoute);
+  }, [applyRoute]);
 
   useEffect(() => {
     if (selectedCookieType == null) return;
     scrollToTop();
   }, [selectedCookieType, selectedRecipeName, activeTab]);
 
+  useEffect(() => {
+    const base =
+      'Cookie ratio calculator — chewy, crispy & cakey cookies | SenseiFood';
+    document.title = selectedCookieType
+      ? `${selectedCookieType.name} — ${base}`
+      : base;
+
+    const canonical = selectedCookieType
+      ? `${PUBLIC_SITE_ORIGIN}/cookie/${encodeURIComponent(selectedCookieType.id)}`
+      : `${PUBLIC_SITE_ORIGIN}/`;
+    const link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+    if (link) link.href = canonical;
+  }, [selectedCookieType]);
+
   const handleSelectCookieType = (cookieType: CookieType) => {
-    lastSyncedRecipeIdRef.current = cookieType.id;
-    setSelectedCookieType(cookieType);
-    setSelectedRecipeName(null);
-    setIngredients(createIngredientsFromFormula(cookieType.baseFormula));
-    setToppings([]);
-    // Hash navigation fires `hashchange` everywhere (pushState + hash often does not) — keeps iframe/embeds consistent.
-    const next = `#/cookie/${encodeURIComponent(cookieType.id)}`;
-    if (window.location.hash !== next) {
-      window.location.hash = next;
-    }
+    window.history.pushState(
+      null,
+      '',
+      joinBase(`/cookie/${encodeURIComponent(cookieType.id)}`)
+    );
+    applyRoute();
   };
 
   const handleBackToSelection = (e?: MouseEvent<HTMLButtonElement>) => {
     e?.preventDefault();
     e?.stopPropagation();
-    lastSyncedRecipeIdRef.current = null;
-    setSelectedCookieType(null);
-    setIngredients([]);
-    setSelectedRecipeName(null);
-    setToppings([]);
     setScrollHomeToCookieGrid(true);
-    if (window.location.hash !== '#' && window.location.hash !== '#/') {
-      window.location.hash = '#/';
-    }
+    window.history.pushState(null, '', joinBase('/'));
+    applyRoute();
   };
 
   const handleMeasurementModeChange = (mode: MeasurementMode) => {
