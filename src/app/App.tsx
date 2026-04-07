@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Plus, X } from 'lucide-react';
 import { RecipeIngredient, UnitType } from './types/cookie';
 import { cookieTypes, CookieType } from './types/cookieTypes';
@@ -74,6 +74,15 @@ interface SelectedTopping {
   amountG: number;
 }
 
+function parseCookieHash(): { kind: 'selector' } | { kind: 'recipe'; id: string } {
+  const raw = window.location.hash.replace(/^#/, '').trim();
+  const path = raw.startsWith('/') ? raw : `/${raw}`;
+  if (path === '/' || path === '') return { kind: 'selector' };
+  const m = path.match(/^\/cookie\/([^/?#]+)\/?$/);
+  if (m) return { kind: 'recipe', id: decodeURIComponent(m[1]) };
+  return { kind: 'selector' };
+}
+
 export default function App() {
   const [selectedCookieType, setSelectedCookieType] = useState<CookieType | null>(null);
   const [ingredients, setIngredients] = useState<RecipeIngredient[]>([]);
@@ -85,12 +94,16 @@ export default function App() {
   const [showToppingModal, setShowToppingModal] = useState(false);
   const [toppingCat, setToppingCat] = useState('all');
 
+  const measurementModeRef = useRef(measurementMode);
+  measurementModeRef.current = measurementMode;
+  const lastSyncedRecipeIdRef = useRef<string | null>(null);
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'auto' });
   };
 
-  const createIngredientsFromFormula = (baseFormula: CookieType['baseFormula']) => {
-    const defaultUnit = UNIT_OPTIONS[measurementMode][0];
+  const createIngredientsFromFormula = (baseFormula: CookieType['baseFormula'], mode: MeasurementMode = measurementMode) => {
+    const defaultUnit = UNIT_OPTIONS[mode][0];
     return baseFormula.map((ing, index) => {
       const ingredientData = ingredientsDatabase.find(i => i.id === ing.ingredientId);
       const isEgg = ingredientData?.category === 'egg';
@@ -104,10 +117,68 @@ export default function App() {
   };
 
   useEffect(() => {
+    if (!window.location.hash || window.location.hash === '#' || window.location.hash === '') {
+      window.history.replaceState(null, '', '#/');
+    }
+
+    const syncFromLocation = () => {
+      const route = parseCookieHash();
+      if (route.kind === 'selector') {
+        lastSyncedRecipeIdRef.current = null;
+        setSelectedCookieType(null);
+        setIngredients([]);
+        setSelectedRecipeName(null);
+        setToppings([]);
+        return;
+      }
+      const ct = cookieTypes.find(c => c.id === route.id);
+      if (!ct) {
+        window.history.replaceState(null, '', '#/');
+        lastSyncedRecipeIdRef.current = null;
+        setSelectedCookieType(null);
+        setIngredients([]);
+        setSelectedRecipeName(null);
+        setToppings([]);
+        return;
+      }
+      setSelectedCookieType(ct);
+      if (lastSyncedRecipeIdRef.current !== route.id) {
+        lastSyncedRecipeIdRef.current = route.id;
+        const mode = measurementModeRef.current;
+        const defaultUnit = UNIT_OPTIONS[mode][0];
+        setIngredients(
+          ct.baseFormula.map((ing, index) => {
+            const ingredientData = ingredientsDatabase.find(i => i.id === ing.ingredientId);
+            const isEgg = ingredientData?.category === 'egg';
+            return {
+              ...ing,
+              id: `${Date.now()}-${index}`,
+              displayUnit: defaultUnit,
+              eggSize: isEgg ? ('medium' as const) : undefined,
+            };
+          })
+        );
+        setSelectedRecipeName(null);
+        setToppings([]);
+      }
+    };
+
+    syncFromLocation();
+    window.addEventListener('hashchange', syncFromLocation);
+    window.addEventListener('popstate', syncFromLocation);
+    return () => {
+      window.removeEventListener('hashchange', syncFromLocation);
+      window.removeEventListener('popstate', syncFromLocation);
+    };
+  }, []);
+
+  useEffect(() => {
     scrollToTop();
   }, [selectedCookieType, selectedRecipeName, activeTab]);
 
   const handleSelectCookieType = (cookieType: CookieType) => {
+    lastSyncedRecipeIdRef.current = cookieType.id;
+    window.history.pushState(null, '', `#/cookie/${encodeURIComponent(cookieType.id)}`);
     setSelectedCookieType(cookieType);
     setSelectedRecipeName(null);
     setIngredients(createIngredientsFromFormula(cookieType.baseFormula));
@@ -115,6 +186,8 @@ export default function App() {
   };
 
   const handleBackToSelection = () => {
+    lastSyncedRecipeIdRef.current = null;
+    window.history.replaceState(null, '', '#/');
     setSelectedCookieType(null);
     setIngredients([]);
     setSelectedRecipeName(null);
@@ -249,6 +322,7 @@ export default function App() {
                 <PrintRecipeButton
                   metrics={metricsWithToppings}
                   cookieType={selectedCookieType}
+                  recipeTitle={selectedRecipeName}
                   ingredients={formattedIngredients}
                   servingSize={servingSize}
                   servingsPerRecipe={totalServings}

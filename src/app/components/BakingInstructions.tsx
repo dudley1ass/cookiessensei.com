@@ -8,7 +8,7 @@ interface BakingInstructionsProps {
   measurementMode: 'metric' | 'imperial' | 'volumetric';
 }
 
-interface BakingData {
+export interface BakingData {
   tempF: number;
   tempC: number;
   timeMin: number;
@@ -629,6 +629,11 @@ const BAKING_DATA: Record<string, BakingData> = {
     ],
   },
 };
+
+/** Static baking copy for print/PDF (UI applies per-cookie time tweaks separately). */
+export function getBakingDataForPrint(cookieTypeId: string): BakingData | undefined {
+  return BAKING_DATA[cookieTypeId];
+}
 
 export function BakingInstructions({ cookieType, totalWeight, cookieCount, measurementMode }: BakingInstructionsProps) {
   const [showTips, setShowTips] = useState(true);
