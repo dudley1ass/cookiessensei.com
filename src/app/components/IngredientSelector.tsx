@@ -55,7 +55,7 @@ const COOKIE_RATIO_STANDARD: RatioBands = {
   leavenerWarn: 0.08,
 };
 
-type RatioProfile = 'standard' | 'brownie' | 'bar' | 'fried' | 'no-bake' | 'high-butter';
+type RatioProfile = 'standard' | 'brownie' | 'bar' | 'fried' | 'no-bake' | 'high-butter' | 'sandwich';
 
 export function ratioProfileForCookieFamily(id: string): RatioProfile {
   switch (id) {
@@ -63,6 +63,9 @@ export function ratioProfileForCookieFamily(id: string): RatioProfile {
     case 'bar-cookie':
       // Pan bars / brownies use very little flour on purpose — same bands as brownie cookies.
       return 'brownie';
+    case 'sandwich-cookie':
+      // Cookie + filling in one list inflates sugar/liquids vs flour for the dough alone.
+      return 'sandwich';
     case 'molded':
       // Pecan sandies, snowballs, etc. — high butter vs flour is normal.
       return 'high-butter';
@@ -91,6 +94,19 @@ export function getRatioBands(profile: RatioProfile): RatioBands {
       b.sugarWarn = 3.9;
       b.eggProblem = 3.2;
       b.eggWarn = 2.85;
+      // Eggs + vanilla read as “liquid” — batters are naturally wetter than drop-cookie dough.
+      b.liquidProblem = 4.85;
+      b.liquidWarn = 3.45;
+      return b;
+    case 'sandwich':
+      b.sugarProblem = 2.85;
+      b.sugarWarn = 2.35;
+      b.liquidProblem = 1.45;
+      b.liquidWarn = 1.0;
+      b.fatProblem = 1.35;
+      b.fatWarn = 1.12;
+      b.eggProblem = 2.35;
+      b.eggWarn = 1.85;
       return b;
     case 'bar':
       // Kept for explicit `'bar'` profile if used later; `bar-cookie` family uses `brownie` profile.

@@ -118,7 +118,11 @@ export default function App() {
 
   useEffect(() => {
     if (!window.location.hash || window.location.hash === '#' || window.location.hash === '') {
-      window.history.replaceState(null, '', '#/');
+      window.history.replaceState(
+        null,
+        '',
+        `${window.location.pathname}${window.location.search}#/`
+      );
     }
 
     const syncFromLocation = () => {
@@ -133,7 +137,11 @@ export default function App() {
       }
       const ct = cookieTypes.find(c => c.id === route.id);
       if (!ct) {
-        window.history.replaceState(null, '', '#/');
+        window.history.replaceState(
+          null,
+          '',
+          `${window.location.pathname}${window.location.search}#/`
+        );
         lastSyncedRecipeIdRef.current = null;
         setSelectedCookieType(null);
         setIngredients([]);
@@ -178,11 +186,15 @@ export default function App() {
 
   const handleSelectCookieType = (cookieType: CookieType) => {
     lastSyncedRecipeIdRef.current = cookieType.id;
-    window.history.pushState(null, '', `#/cookie/${encodeURIComponent(cookieType.id)}`);
     setSelectedCookieType(cookieType);
     setSelectedRecipeName(null);
     setIngredients(createIngredientsFromFormula(cookieType.baseFormula));
     setToppings([]);
+    // Hash navigation fires `hashchange` everywhere (pushState + hash often does not) — keeps iframe/embeds consistent.
+    const next = `#/cookie/${encodeURIComponent(cookieType.id)}`;
+    if (window.location.hash !== next) {
+      window.location.hash = next;
+    }
   };
 
   const handleBackToSelection = (e?: MouseEvent<HTMLButtonElement>) => {
@@ -193,9 +205,9 @@ export default function App() {
     setIngredients([]);
     setSelectedRecipeName(null);
     setToppings([]);
-    // Full URL keeps path/query stable and avoids hosts where a bare `#/` mishandles the history entry.
-    const backUrl = `${window.location.origin}${window.location.pathname}${window.location.search}#/`;
-    window.history.replaceState(null, '', backUrl);
+    if (window.location.hash !== '#' && window.location.hash !== '#/') {
+      window.location.hash = '#/';
+    }
   };
 
   const handleMeasurementModeChange = (mode: MeasurementMode) => {

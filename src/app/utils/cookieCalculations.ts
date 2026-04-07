@@ -113,7 +113,10 @@ export function calculateCookieMetrics(
       acidName.includes('brown sugar') ||
       acidName.includes('honey') ||
       acidName.includes('cocoa') ||
-      acidName.includes('cream cheese')
+      acidName.includes('cream cheese') ||
+      acidName.includes('peanut butter') ||
+      acidName.includes('almond butter') ||
+      acidName.includes('nut butter')
     ) {
       acidicSupportWeight += weight;
     }
