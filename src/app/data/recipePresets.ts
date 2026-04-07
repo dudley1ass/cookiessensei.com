@@ -25,7 +25,7 @@ export const recipePresets: RecipePreset[] = [
       { id: '5', ingredientId: 'vanilla-extract', amount: 10 },
       { id: '6', ingredientId: 'flour-ap', amount: 280 },
       { id: '7', ingredientId: 'baking-soda', amount: 5 },
-      { id: '8', ingredientId: 'salt', amount: 5 },
+      { id: '8', ingredientId: 'salt', amount: 4 },
       { id: '9', ingredientId: 'chocolate-chips-semisweet', amount: 340 },
     ],
   },
@@ -43,7 +43,7 @@ export const recipePresets: RecipePreset[] = [
       { id: '5', ingredientId: 'vanilla-extract', amount: 5 },
       { id: '6', ingredientId: 'flour-ap', amount: 190 },
       { id: '7', ingredientId: 'baking-soda', amount: 5 },
-      { id: '8', ingredientId: 'salt', amount: 5 },
+      { id: '8', ingredientId: 'salt', amount: 4 },
       { id: '9', ingredientId: 'oats-rolled', amount: 240 },
       { id: '10', ingredientId: 'raisins', amount: 150 },
     ],
@@ -63,7 +63,7 @@ export const recipePresets: RecipePreset[] = [
       { id: '6', ingredientId: 'flour-ap', amount: 250 },
       { id: '7', ingredientId: 'cocoa-powder', amount: 50 },
       { id: '8', ingredientId: 'baking-soda', amount: 5 },
-      { id: '9', ingredientId: 'salt', amount: 5 },
+      { id: '9', ingredientId: 'salt', amount: 4 },
       { id: '10', ingredientId: 'chocolate-chips-dark', amount: 340 },
     ],
   },
@@ -97,7 +97,7 @@ export const recipePresets: RecipePreset[] = [
       { id: '5', ingredientId: 'vanilla-extract', amount: 5 },
       { id: '6', ingredientId: 'flour-ap', amount: 280 },              // 2 1/4 cups
       { id: '7', ingredientId: 'baking-soda', amount: 5 },
-      { id: '8', ingredientId: 'salt', amount: 5 },
+      { id: '8', ingredientId: 'salt', amount: 4 },
       { id: '9', ingredientId: 'macadamia', amount: 130 },             // 1 cup
       { id: '10', ingredientId: 'chocolate-chips-white', amount: 170 }, // 1 cup
     ],
@@ -204,8 +204,8 @@ export const recipePresets: RecipePreset[] = [
       { id: '4', ingredientId: 'vanilla-extract', amount: 10 },
       { id: '5', ingredientId: 'sour-cream', amount: 60 },
       { id: '6', ingredientId: 'flour-ap', amount: 280 },
-      { id: '7', ingredientId: 'baking-powder', amount: 10 },
-      { id: '8', ingredientId: 'baking-soda', amount: 3 },
+      { id: '7', ingredientId: 'baking-powder', amount: 7 },
+      { id: '8', ingredientId: 'baking-soda', amount: 1 },
       { id: '9', ingredientId: 'salt', amount: 3 },
     ],
   },
@@ -233,7 +233,7 @@ export const recipePresets: RecipePreset[] = [
     id: 'scottish-shortbread',
     name: 'Traditional Scottish Shortbread',
     cookieTypeId: 'shortbread',
-    description: 'Classic 1-2-3 ratio: sugar, butter, flour',
+    description: 'Rich butter shortbread (high butter vs classic 1:2:3 Scots ratio)',
     servings: '24 wedges',
     ingredients: [
       { id: '1', ingredientId: 'butter-unsalted', amount: 227 },
@@ -307,7 +307,7 @@ export const recipePresets: RecipePreset[] = [
       { id: '4', ingredientId: 'vanilla-extract', amount: 5 },
       { id: '5', ingredientId: 'flour-ap', amount: 280 },
       { id: '6', ingredientId: 'cream-tartar', amount: 5 },
-      { id: '7', ingredientId: 'baking-soda', amount: 5 },
+      { id: '7', ingredientId: 'baking-soda', amount: 4 },
       { id: '8', ingredientId: 'salt', amount: 3 },
     ],
   },
@@ -327,7 +327,7 @@ export const recipePresets: RecipePreset[] = [
       { id: '5', ingredientId: 'vanilla-extract', amount: 5 },
       { id: '6', ingredientId: 'cocoa-powder', amount: 75 },
       { id: '7', ingredientId: 'flour-ap', amount: 125 },
-      { id: '8', ingredientId: 'baking-powder', amount: 5 },
+      { id: '8', ingredientId: 'baking-powder', amount: 2 },
       { id: '9', ingredientId: 'salt', amount: 3 },
       { id: '10', ingredientId: 'chocolate-chips-dark', amount: 170 },
     ],
@@ -341,7 +341,7 @@ export const recipePresets: RecipePreset[] = [
     description: 'Twice-baked Italian cookies perfect for coffee',
     servings: '30 biscotti',
     ingredients: [
-      { id: '1', ingredientId: 'butter-unsalted', amount: 56 },
+      { id: '1', ingredientId: 'butter-unsalted', amount: 36 },
       { id: '2', ingredientId: 'sugar-white', amount: 200 },
       { id: '3', ingredientId: 'egg-whole', amount: 100, eggSize: 'medium', eggQuantity: 2 },
       { id: '4', ingredientId: 'vanilla-extract', amount: 5 },
@@ -420,7 +420,7 @@ export const recipePresets: RecipePreset[] = [
       { id: '6', ingredientId: 'vanilla-extract', amount: 5 },
       { id: '7', ingredientId: 'flour-ap', amount: 190 },
       { id: '8', ingredientId: 'baking-soda', amount: 5 },
-      { id: '9', ingredientId: 'salt', amount: 5 },
+      { id: '9', ingredientId: 'salt', amount: 3 },
     ],
   },
 
@@ -1867,7 +1867,7 @@ export const recipePresets: RecipePreset[] = [
       { id: '5', ingredientId: 'vanilla-extract', amount: 10 },          // 2 tsp
       { id: '6', ingredientId: 'flour-ap', amount: 280 },                // 2 1/4 cups
       { id: '7', ingredientId: 'baking-soda', amount: 5 },
-      { id: '8', ingredientId: 'salt', amount: 5 },
+      { id: '8', ingredientId: 'salt', amount: 4 },
       { id: '9', ingredientId: 'chocolate-chips-semisweet', amount: 340 }, // 2 cups
     ],
   },
