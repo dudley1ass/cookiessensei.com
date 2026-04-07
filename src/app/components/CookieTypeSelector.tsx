@@ -38,7 +38,10 @@ export function CookieTypeSelector({
     <div className="min-h-screen" style={{ background: 'linear-gradient(135deg, #fdf6e3 0%, #fce4ec 50%, #f3e5f5 100%)' }}>
 
       {/* Hero Banner */}
-      <CookieHeroBanner onScrollToGrid={scrollToGrid} />
+      <CookieHeroBanner
+        onScrollToGrid={scrollToGrid}
+        onOpenMatcher={() => setShowMatcher(true)}
+      />
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
@@ -51,9 +54,11 @@ export function CookieTypeSelector({
               </div>
               <div>
                 <h2 className="text-2xl font-black text-gray-800 leading-tight">
-                  {cookieTypes.length} Professional Cookie Formulas
+                  {cookieTypes.length} professional formulas — pick one to open the builder
                 </h2>
-                <p className="text-sm text-gray-500">Select a type to load its science-based formula</p>
+                <p className="text-sm text-gray-500">
+                  Chewy, crispy, cakey, fudgy, bars, and more. Each loads a science-backed starting recipe you can edit.
+                </p>
               </div>
             </div>
             <button
@@ -79,8 +84,9 @@ export function CookieTypeSelector({
             {cookieTypes.map((type) => (
               <button
                 key={type.id}
+                type="button"
                 onClick={() => onSelectType(type)}
-                className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 text-left border-2 border-transparent hover:border-red-400 hover:scale-105 group"
+                className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 text-left border-2 border-transparent hover:border-red-400 hover:-translate-y-0.5 flex flex-col h-full"
               >
                 <div className="flex items-start justify-between mb-3">
                   <div className="text-4xl">{type.emoji}</div>
@@ -93,16 +99,19 @@ export function CookieTypeSelector({
                 </div>
 
                 <h3 className="text-lg font-bold text-gray-800 mb-2">{type.name}</h3>
-                <p className="text-sm text-gray-600 mb-3 line-clamp-2">{type.description}</p>
+                <p className="text-sm text-gray-600 mb-3 line-clamp-2 flex-1">{type.description}</p>
 
-                <div className="mb-3">
+                <div className="mb-4">
                   <div className="text-xs font-semibold text-red-600 mb-1">Examples:</div>
                   <div className="text-xs text-gray-500 line-clamp-1">{type.examples.join(', ')}</div>
                 </div>
 
-                <div className="mt-3 flex items-center gap-2 text-xs text-red-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                  <span>Load Formula →</span>
-                </div>
+                <span
+                  className="mt-auto inline-flex items-center justify-center gap-2 w-full py-2.5 rounded-lg text-sm font-bold text-white transition-opacity group-hover:opacity-100"
+                  style={{ background: 'linear-gradient(135deg, #c0392b, #e67e22)' }}
+                >
+                  Use this formula
+                </span>
               </button>
             ))}
           </div>
@@ -126,26 +135,15 @@ export function CookieTypeSelector({
         </div>
       </main>
 
-      {/* Bottom CTA */}
-      <div
-        className="py-10 mt-4"
-        style={{ background: 'linear-gradient(135deg, #7B1F14 0%, #a93226 100%)' }}
-      >
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <div className="text-3xl mb-2">🍳</div>
-          <h3 className="text-2xl font-black text-white mb-2">Not sure where to start?</h3>
-          <p className="text-red-100/70 text-sm mb-5">
-            Tell us what ingredients you have on hand — we'll match you to the perfect cookie formula.
-          </p>
+      {/* Light reminder — primary onboarding moved into hero */}
+      <div className="py-8 mt-4 bg-white/60 border-t border-red-100">
+        <div className="max-w-3xl mx-auto px-6 text-center text-sm text-gray-600">
           <button
+            type="button"
             onClick={() => setShowMatcher(true)}
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl font-bold text-white text-sm transition-all hover:scale-105 active:scale-95"
-            style={{
-              background: 'linear-gradient(135deg, #e67e22, #F0A500)',
-              boxShadow: '0 6px 24px rgba(230,126,34,0.4)',
-            }}
+            className="font-semibold text-red-700 hover:text-red-900 underline underline-offset-4"
           >
-            🍳 Find My Cookie Formula
+            Prefer to start from your pantry instead? Open the ingredient matcher →
           </button>
         </div>
       </div>

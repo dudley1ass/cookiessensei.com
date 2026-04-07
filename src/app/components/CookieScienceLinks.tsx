@@ -59,17 +59,22 @@ const COOKIE_SCIENCE_ARTICLES = [
 export function CookieScienceLinks({ activeArticleUrl }: CookieScienceLinksProps) {
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-        <BookOpen className="w-4 h-4 text-amber-600" />
-        <h3 className="font-bold text-gray-900 text-sm">Cookie Science Articles</h3>
-        <a
-          href="https://senseifood.com/articles"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="ml-auto text-xs text-amber-600 hover:text-amber-700 font-semibold flex items-center gap-1 transition-colors"
-        >
-          All Articles <ExternalLink className="w-3 h-3" />
-        </a>
+      <div className="px-5 py-4 border-b border-gray-100">
+        <div className="flex items-center gap-2 flex-wrap">
+          <BookOpen className="w-4 h-4 text-amber-600 shrink-0" />
+          <h3 className="font-bold text-gray-900 text-sm">Cookie Science Articles</h3>
+          <a
+            href="https://senseifood.com/articles"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto text-xs text-amber-600 hover:text-amber-700 font-semibold flex items-center gap-1 transition-colors"
+          >
+            All Articles <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+        <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+          Learn why it happens in the article — then apply it here: change ingredients and watch texture, spread, and water activity update live.
+        </p>
       </div>
 
       <div className="divide-y divide-gray-50">
